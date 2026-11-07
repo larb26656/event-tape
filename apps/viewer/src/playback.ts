@@ -58,7 +58,7 @@ export function createPlaybackStore() {
       const playheadMs = Math.min(state.durationMs, state.playheadMs + realElapsedMs * state.speed)
       return { playheadMs, playing: playheadMs < state.durationMs }
     }),
-    seek: (elapsedMs) => set((state) => ({ playheadMs: Math.max(0, Math.min(state.durationMs, elapsedMs)), playing: false })),
+    seek: (elapsedMs) => set((state) => ({ playheadMs: Math.max(0, Math.min(state.durationMs, elapsedMs)), playing: false, selectedIndex: -1 })),
     selectEvent: (index) => set((state) => {
       const event = state.events[index]
       return event ? { selectedIndex: index, playheadMs: event.elapsedMs, playing: false } : { playing: false }
