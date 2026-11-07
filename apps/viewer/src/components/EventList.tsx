@@ -12,13 +12,17 @@ type EventListProps = {
 
 export function EventList({ events, selected, onSelect }: EventListProps) {
   const listParent = useRef<HTMLDivElement>(null)
+  const focusResult = useRef<number | null>(null)
   const [query, setQuery] = useState('')
+  const ordered = useMemo(() => events.map((_, index) => index).sort((a, b) =>
+    events[a].elapsedMs - events[b].elapsedMs || events[a].seq - events[b].seq || a - b,
+  ), [events])
   const results = useMemo(() => {
     const needle = query.toLowerCase()
-    return events.flatMap((event, index) =>
-      !needle || JSON.stringify(event).toLowerCase().includes(needle) ? [index] : [],
-    )
-  }, [events, query])
+    return needle
+      ? ordered.filter((index) => JSON.stringify(events[index]).toLowerCase().includes(needle))
+      : ordered
+  }, [events, ordered, query])
   const virtualizer = useVirtualizer({
     count: results.length,
     getScrollElement: () => listParent.current,
@@ -73,9 +77,24 @@ export function EventList({ events, selected, onSelect }: EventListProps) {
               }}
             >
               <button
+                ref={(button) => {
+                  if (button && focusResult.current === originalIndex) {
+                    focusResult.current = null
+                    button.focus({ preventScroll: true })
+                  }
+                }}
                 aria-pressed={selected === originalIndex}
                 className={`hover:bg-accent h-full w-full rounded-lg border p-3 text-left transition-colors ${selected === originalIndex ? 'bg-accent' : ''}`}
                 onClick={() => onSelect(originalIndex)}
+                onKeyDown={(event) => {
+                  if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown') return
+                  event.preventDefault()
+                  const next = row.index + (event.key === 'ArrowDown' ? 1 : -1)
+                  if (next < 0 || next >= results.length) return
+                  focusResult.current = results[next]
+                  virtualizer.scrollToIndex(next, { align: 'auto' })
+                  onSelect(results[next])
+                }}
               >
                 <span className="text-muted-foreground font-mono text-xs">
                   #{item.seq} · {item.elapsedMs.toFixed(2)} ms

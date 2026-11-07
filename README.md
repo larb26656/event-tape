@@ -31,6 +31,8 @@ pnpm --filter @event-tape/viewer build
 node apps/viewer/dist/cli.mjs view ./path/to/recording.jsonl
 ```
 
+In the Viewer, search filters the event list without changing playback or the inspected event. Focus an event row and use ↑ or ↓ to select the previous or next visible event; navigation stops at the ends of the list. Selecting a row pauses playback and moves the playhead to that event. Arrow keys in the search field remain available for editing.
+
 ## Using the SDK and Viewer in another project
 
 Build both distributable packages from the repository root:
