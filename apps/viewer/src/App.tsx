@@ -251,7 +251,7 @@ export default function App() {
             {[1, 2, 4].map((value) => (
               <Button
                 key={value}
-                variant={speed === value ? 'default' : 'outline'}
+                disabled={!canSeek}
                 onClick={() =>
                   playback.getState().setSpeed(value as 1 | 2 | 4)
                 }
@@ -271,7 +271,7 @@ export default function App() {
             type="range"
             min={0}
             max={durationMs}
-            step={1}
+            step="any"
             value={playheadMs}
             disabled={!canSeek}
             onChange={(e) => playback.getState().seek(Number(e.target.value))}

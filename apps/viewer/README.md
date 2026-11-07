@@ -9,11 +9,11 @@ npx event-tape view ./recordings/session.jsonl
 
 The CLI prints a loopback URL and opens it in the system browser. Use `npx event-tape view ./recordings/session.jsonl --no-browser` to suppress browser launch and copy the printed URL. The CLI serves the selected recording and packaged HTML, JS, CSS, fonts, and parsing Worker from the local machine. The Viewer loads files locally; it does not upload recording contents.
 
-The SDK's JSONL contract is versioned. Each event is one JSON object per line with a timestamp, increasing sequence number, elapsed milliseconds, source, optional direction, and JSON payload. Malformed, truncated, unsupported, or schema-invalid recordings are shown as load errors rather than silently accepted. Empty recordings load with zero events. A zero-duration recording can be inspected event-by-event, but cannot be played or sought. Playback ends at the final event and never replays events into an application.
+The SDK's JSONL contract is versioned. Each event is one JSON object per line with a timestamp, increasing sequence number, elapsed milliseconds, source, optional direction, and JSON payload. Empty lines and malformed, truncated, unsupported, or schema-invalid records are shown as load errors rather than silently accepted. A partial final JSON fragment may be discarded with a warning. Empty recordings load with zero events. A zero-duration recording can be inspected event-by-event, but cannot be played or sought. Playback ends at the final event and never replays events into an application.
 
 ## Playback behavior
 
-Play advances a clock by recorded `elapsedMs` (including quiet intervals), at 1×, 2×, or 4×. The displayed JSON is the latest event at or before the playhead; equal timestamps prefer the highest sequence number. Selecting a timeline event pauses playback and inspects that exact event. Raw JSON displays the selected event envelope and payload.
+Play advances a clock by recorded `elapsedMs` (including quiet intervals), at 1×, 2×, or 4×. The displayed JSON is the latest event at or before the playhead; equal timestamps prefer the highest sequence number. Selecting a timeline event pauses playback and inspects that exact event. Raw JSON displays the selected event envelope and payload. Seeking supports fractional millisecond positions.
 
 ## Target-size and external-package smoke
 

@@ -6,18 +6,12 @@ Install `@event-tape/sdk` in a Node.js 22+ ESM project. The SDK records JSONL fr
 npm install @event-tape/sdk
 ```
 
-Install the SDK in a Node.js 22+ project:
-
-```sh
-npm install @event-tape/sdk
-```
-
 The SDK is ESM-only, includes TypeScript declarations, and has no runtime dependencies.
 
 ```ts
 import { createRecorder } from '@event-tape/sdk'
 
-const recorder = await createRecorder({
+const recorder = createRecorder({
   file: './recordings/session.jsonl',
   onError: (error) => console.error('Recording write failed', error),
 })
@@ -35,9 +29,9 @@ try {
 }
 ```
 
-`source` is required; `direction` is any string or may be omitted. `payload` must be JSON data. Snapshotting is synchronous when `record()` is called, so later mutations do not affect the recording. Do not record secrets unless filtered by the caller.
+`createRecorder()` creates the parent directories and opens the destination synchronously. An existing file or other open failure throws immediately. `source` is required; `direction` is any string or may be omitted. `payload` must be losslessly JSON-serializable. Snapshotting is synchronous when `record()` is called, so later mutations do not affect the recording. Values JSON would omit or rewrite are rejected. Do not record secrets unless filtered by the caller.
 
-`close()` stops new records and waits for queued writes and the file handle to close. Await it before considering a recording complete. Opening a destination that already exists fails; the SDK never overwrites or appends. Serialization errors and queue-limit errors throw synchronously from `record()`.
+`close()` stops new records and waits for queued writes and the file handle to close. Await it before considering a recording complete. The SDK never overwrites or appends. Serialization errors and queue-limit errors throw synchronously from `record()`.
 
 The queued data is limited to 16 MiB by default. Set `maxBufferedBytes` to change this limit; an event that would exceed it is rejected synchronously and previously accepted events remain queued. Asynchronous write failures are passed to optional `onError(error)`, stop subsequent records, and are still reported by `close()`. Always catch a rejected `close()`; without `onError`, it is how to observe asynchronous write failure. A process crash can leave a truncated final JSONL line, and the SDK does not guarantee preservation across power loss or other abrupt system failure.
 

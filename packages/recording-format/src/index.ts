@@ -45,7 +45,10 @@ export function parseRecordingJsonl(text: string): RecordingJsonlResult {
 
   for (let index = 0; index < lines.length; index++) {
     const line = lines[index] ?? ''
-    if (!line.trim()) continue
+    if (!line.trim()) {
+      if (!hasFinalNewline && index === lines.length - 1) break
+      throw new Error(`Line ${index + 1}: empty lines are not valid JSONL records`)
+    }
     let value: unknown
     try {
       value = JSON.parse(line)

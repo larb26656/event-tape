@@ -74,9 +74,6 @@ importers:
       cn:
         specifier: 0.5.2
         version: 0.5.2
-      esbuild:
-        specifier: 0.27.3
-        version: 0.27.3
       eslint:
         specifier: 10.0.1
         version: 10.0.1(jiti@2.7.0)
@@ -107,6 +104,9 @@ importers:
       tailwindcss:
         specifier: 4.1.18
         version: 4.1.18
+      tsdown:
+        specifier: 0.23.7
+        version: 0.23.7(typescript@6.0.2)
       tw-animate-css:
         specifier: 1.4.0
         version: 1.4.0

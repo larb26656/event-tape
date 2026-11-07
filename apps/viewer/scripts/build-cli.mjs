@@ -1,11 +1,10 @@
-import { build } from 'esbuild'
+import { build } from 'tsdown'
 import { fileURLToPath, URL } from 'node:url'
 
 await build({
-  entryPoints: [fileURLToPath(new URL('../src/cli.ts', import.meta.url))],
-  bundle: true,
+  entry: [fileURLToPath(new URL('../src/cli.ts', import.meta.url))],
+  outDir: fileURLToPath(new URL('../dist', import.meta.url)),
   platform: 'node',
   format: 'esm',
-  packages: 'external',
-  outfile: fileURLToPath(new URL('../dist/cli.js', import.meta.url)),
+  dts: false,
 })
