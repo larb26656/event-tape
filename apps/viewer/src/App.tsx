@@ -1,14 +1,34 @@
 import { useEffect, useState } from 'react'
+import { useStore } from 'zustand'
 import { Button } from '@/components/ui/button'
+import { createPlaybackStore } from './playback'
 import type { RecordingEnvelope } from '@event-tape/recording-format'
 
 type WorkerResult = { events?: RecordingEnvelope[]; error?: string }
 
 export default function App() {
-  const [events, setEvents] = useState<RecordingEnvelope[]>([])
-  const [selected, setSelected] = useState(0)
+  const [playback] = useState(createPlaybackStore)
+  const events = useStore(playback, (state) => state.events)
+  const playheadMs = useStore(playback, (state) => state.playheadMs)
+  const playing = useStore(playback, (state) => state.playing)
+  const speed = useStore(playback, (state) => state.speed)
+  const selected = useStore(playback, (state) => state.selectedIndex)
+  const durationMs = useStore(playback, (state) => state.durationMs)
+  const canSeek = useStore(playback, (state) => state.canSeek)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
+  useEffect(() => {
+    if (!playing) return
+    let previous = performance.now()
+    let frame = 0
+    const tick = (now: number) => {
+      playback.getState().advance(now - previous)
+      previous = now
+      if (playback.getState().playing) frame = requestAnimationFrame(tick)
+    }
+    frame = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(frame)
+  }, [playback, playing])
   useEffect(() => {
     const worker = new Worker(
       new URL('./recording.worker.ts', import.meta.url),
@@ -16,7 +36,7 @@ export default function App() {
     )
     worker.onmessage = (message: MessageEvent<WorkerResult>) => {
       if (message.data.error) setError(message.data.error)
-      else setEvents(message.data.events ?? [])
+      else playback.getState().setEvents(message.data.events ?? [])
       setLoading(false)
     }
     fetch('/recording.jsonl')
@@ -30,26 +50,25 @@ export default function App() {
         setLoading(false)
       })
     return () => worker.terminate()
-  }, [])
+  }, [playback])
   const chooseFile = (file?: File) => {
     if (!file) return
     setError('')
     setLoading(true)
-    setEvents([])
-    setSelected(0)
+    playback.getState().setEvents([])
     const worker = new Worker(
       new URL('./recording.worker.ts', import.meta.url),
       { type: 'module' },
     )
     worker.onmessage = (message: MessageEvent<WorkerResult>) => {
       if (message.data.error) setError(message.data.error)
-      else setEvents(message.data.events ?? [])
+      else playback.getState().setEvents(message.data.events ?? [])
       setLoading(false)
       worker.terminate()
     }
     worker.postMessage(file)
   }
-  const event = events[selected]
+  const event = playback.getState().currentEvent()
   return (
     <main className="bg-background text-foreground min-h-svh p-6 md:p-10">
       <header className="mx-auto mb-8 flex max-w-5xl items-center justify-between">
@@ -96,12 +115,26 @@ export default function App() {
               No events in this recording.
             </p>
           )}
+          <div className="mb-4 flex flex-wrap items-center gap-2">
+            <Button variant="outline" disabled={!canSeek} onClick={() => playback.getState().toggle()}>
+              {playing ? 'Pause' : 'Play'}
+            </Button>
+            {[1, 2, 4].map((value) => (
+              <Button key={value} variant={speed === value ? 'default' : 'outline'} onClick={() => playback.getState().setSpeed(value as 1 | 2 | 4)} aria-pressed={speed === value}>
+                {value}×
+              </Button>
+            ))}
+            <span className="text-muted-foreground font-mono text-xs">
+              {(playheadMs / 1000).toFixed(2)} / {(durationMs / 1000).toFixed(2)} s
+            </span>
+          </div>
+          <input aria-label="Playback position" className="mb-4 w-full accent-primary" type="range" min={0} max={durationMs} step={1} value={playheadMs} disabled={!canSeek} onChange={(e) => playback.getState().seek(Number(e.target.value))} />
           <ol className="max-h-[65vh] space-y-2 overflow-auto">
             {events.map((item, index) => (
               <li key={`${item.seq}-${index}`}>
                 <button
                   className={`hover:bg-accent w-full rounded-lg border p-3 text-left transition-colors ${selected === index ? 'bg-accent' : ''}`}
-                  onClick={() => setSelected(index)}
+                  onClick={() => playback.getState().selectEvent(index)}
                 >
                   <span className="text-muted-foreground font-mono text-xs">
                     #{item.seq} · {item.elapsedMs.toFixed(2)} ms
