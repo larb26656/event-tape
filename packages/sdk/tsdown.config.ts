@@ -6,4 +6,5 @@ export default defineConfig({
   dts: true,
   exports: true,
   clean: true,
+  noExternal: ['@event-tape/recording-format'],
 })

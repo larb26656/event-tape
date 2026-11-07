@@ -6,18 +6,15 @@
     "module": "nodenext",
     "types": ["node"],
     "skipLibCheck": true,
-
-    /* Bundler mode */
-    "allowImportingTsExtensions": true,
+    "moduleResolution": "nodenext",
     "verbatimModuleSyntax": true,
     "moduleDetection": "force",
     "noEmit": true,
-
-    /* Linting */
+    "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["vite.config.ts"]
+  "include": ["vite.config.ts", "src/cli.ts"]
 }

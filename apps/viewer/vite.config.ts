@@ -9,6 +9,7 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": resolve(import.meta.dirname, "./src"),
+      "@event-tape/recording-format/src/index.ts": resolve(import.meta.dirname, "../../packages/recording-format/src/index.ts"),
     },
   },
 })

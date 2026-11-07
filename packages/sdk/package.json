@@ -8,14 +8,22 @@
     ".": "./dist/index.mjs",
     "./package.json": "./package.json"
   },
-  "files": [
-    "dist"
-  ],
+  "files": ["dist"],
   "scripts": {
     "build": "tsdown",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "test": "vitest run"
   },
+  "devDependencies": {
+    "@event-tape/recording-format": "workspace:*",
+    "tsdown": "0.23.7",
+    "typescript": "6.0.2",
+    "eslint": "10.0.1",
+    "vitest": "4.1.0",
+    "@types/node": "22.19.15"
+  }
+}
   "devDependencies": {
     "tsdown": "0.23.7",
     "typescript": "6.0.2",
