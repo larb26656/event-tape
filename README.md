@@ -16,7 +16,7 @@ pnpm test
 pnpm build
 ```
 
-The Viewer is a static Vite application at `apps/viewer`; the Recorder SDK and private shared recording-format package are independent workspace packages. Ticket 01 establishes tooling only and intentionally contains no recording, schema, or playback behavior. There are no test files yet; the test task is reserved for behavior introduced in later tickets and does not create dummy tests.
+The Viewer opens only the Event Tape recording envelope format (version 1), parsed in a Web Worker. A complete final JSONL record is accepted whether or not it ends in a newline. If the last line is invalid JSON and has no terminating newline, the viewer keeps the complete preceding records and shows a recovery warning; if none precede it, the viewer shows an empty recording with the warning. This is a best-effort recovery of a likely crash-truncated tail, not proof that the recording is complete: events still buffered in the recorder may never have reached disk. Invalid JSON in a terminated/interior line, invalid envelopes, and unsupported versions reject the recording with the line number and cause; the viewer does not skip damaged records. Empty recordings have no events to inspect.
 
 ## CLI initialization
 
