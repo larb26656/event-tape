@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import type { RecordingEnvelope } from '@event-tape/recording-format'
 
@@ -12,30 +12,51 @@ type EventListProps = {
 
 export function EventList({ events, selected, onSelect }: EventListProps) {
   const listParent = useRef<HTMLDivElement>(null)
+  const [query, setQuery] = useState('')
+  const results = useMemo(() => {
+    const needle = query.toLowerCase()
+    return events.flatMap((event, index) =>
+      !needle || JSON.stringify(event).toLowerCase().includes(needle) ? [index] : [],
+    )
+  }, [events, query])
   const virtualizer = useVirtualizer({
-    count: events.length,
+    count: results.length,
     getScrollElement: () => listParent.current,
     estimateSize: () => EVENT_ROW_HEIGHT,
     overscan: 8,
   })
 
   return (
-    <div
-      ref={listParent}
-      aria-label="Recording events"
-      className="max-h-[65vh] overflow-auto"
-    >
+    <div>
+      <label htmlFor="event-search" className="mb-2 block text-sm font-medium">
+        Search events
+      </label>
+      <input
+        id="event-search"
+        type="search"
+        value={query}
+        onChange={(event) => setQuery(event.target.value)}
+        placeholder="Search event JSON"
+        className="border-input bg-background focus-visible:ring-ring mb-4 w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:outline-none"
+      />
+      {events.length === 0 ? (
+        <p className="text-muted-foreground text-sm">No events in this recording.</p>
+      ) : results.length === 0 ? (
+        <p className="text-muted-foreground text-sm">No events match your search.</p>
+      ) : null}
+      <div ref={listParent} aria-label="Recording events" className="max-h-[65vh] overflow-auto">
       <ol
         aria-label="Recording events"
         className="relative list-none p-0"
         style={{ height: virtualizer.getTotalSize() }}
       >
         {virtualizer.getVirtualItems().map((row) => {
-          const item = events[row.index]
+          const originalIndex = results[row.index]
+          const item = events[originalIndex]
           if (!item) return null
           return (
             <li
-              key={`${item.seq}-${row.index}`}
+              key={item.seq}
               data-index={row.index}
               ref={virtualizer.measureElement}
               className="absolute left-0 top-0 w-full pb-2"
@@ -45,8 +66,8 @@ export function EventList({ events, selected, onSelect }: EventListProps) {
               }}
             >
               <button
-                className={`hover:bg-accent h-full w-full rounded-lg border p-3 text-left transition-colors ${selected === row.index ? 'bg-accent' : ''}`}
-                onClick={() => onSelect(row.index)}
+                className={`hover:bg-accent h-full w-full rounded-lg border p-3 text-left transition-colors ${selected === originalIndex ? 'bg-accent' : ''}`}
+                onClick={() => onSelect(originalIndex)}
               >
                 <span className="text-muted-foreground font-mono text-xs">
                   #{item.seq} · {item.elapsedMs.toFixed(2)} ms
@@ -63,6 +84,7 @@ export function EventList({ events, selected, onSelect }: EventListProps) {
           )
         })}
       </ol>
+    </div>
     </div>
   )
 }
