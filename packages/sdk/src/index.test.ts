@@ -1,8 +1,36 @@
-import { mkdtemp, open, readFile, rm, writeFile } from 'node:fs/promises'
+import type * as NodeFs from 'node:fs'
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createRecorder } from './index.js'
+const writeControl = vi.hoisted(() => ({
+  mode: 'normal' as 'normal' | 'partial' | 'error',
+  calls: 0,
+  error: null as Error | null,
+}))
+vi.mock('node:fs', async (importOriginal) => {
+  const actual = await importOriginal<typeof NodeFs>()
+  return {
+    ...actual,
+    write: vi.fn((
+      fd: number,
+      buffer: Uint8Array,
+      offset: number,
+      length: number,
+      position: number | null,
+      callback: (error: NodeJS.ErrnoException | null, bytesWritten: number, buffer: Uint8Array) => void,
+    ) => {
+      writeControl.calls += 1
+      if (writeControl.mode === 'error') {
+        callback(writeControl.error as NodeJS.ErrnoException, 0, buffer)
+        return
+      }
+      const writeLength = writeControl.mode === 'partial' ? Math.max(1, Math.floor(length / 2)) : length
+      actual.write(fd, buffer, offset, writeLength, position, callback)
+    }),
+  }
+})
 
 let directory: string
 afterEach(async () => {
@@ -35,18 +63,13 @@ describe('createRecorder', () => {
     directory = await mkdtemp(join(tmpdir(), 'event-tape-'))
     const file = join(directory, 'partial.jsonl')
     const recorder = createRecorder({ file })
-    const probe = await open(file, 'r')
-    const writeSpy = vi.spyOn(Object.getPrototypeOf(probe), 'write').mockImplementation(async function (buffer: Uint8Array, offset: number, length: number, position: number | null) {
-      const partialLength = Math.max(1, Math.floor(length / 2))
-      return await Reflect.apply(Object.getPrototypeOf(probe).write, this, [buffer, offset, partialLength, position])
-    })
+    writeControl.mode = 'partial'
+    writeControl.calls = 0
     recorder.record({ source: 's', payload: { text: 'partial writes must be completed' } })
     await recorder.close()
-    const line = await readFile(file, 'utf8')
-    expect(JSON.parse(line).payload).toEqual({ text: 'partial writes must be completed' })
-    expect(writeSpy).toHaveBeenCalledTimes(1)
-    writeSpy.mockRestore()
-    await probe.close()
+    expect(JSON.parse(await readFile(file, 'utf8')).payload).toEqual({ text: 'partial writes must be completed' })
+    expect(writeControl.calls).toBeGreaterThan(1)
+    writeControl.mode = 'normal'
   })
 
   it('accepts an event exactly at the byte limit and drains it after rejecting an oversized event', async () => {
@@ -97,15 +120,15 @@ describe('createRecorder', () => {
     const onError = vi.fn()
     const recorder = createRecorder({ file, onError })
     const failure = new Error('disk failed')
-    const probe = await open(file, 'r')
-    const writeSpy = vi.spyOn(Object.getPrototypeOf(probe), 'write').mockRejectedValueOnce(failure)
+    writeControl.mode = 'error'
+    writeControl.error = failure
     recorder.record({ source: 's', payload: 'first' })
     await vi.waitFor(() => expect(onError).toHaveBeenCalledWith(failure))
     expect(() => recorder.record({ source: 's', payload: 'later' })).toThrow(failure)
     await expect(recorder.close()).rejects.toBe(failure)
     expect(onError).toHaveBeenCalledTimes(1)
-    writeSpy.mockRestore()
-    await probe.close()
+    writeControl.mode = 'normal'
+    writeControl.error = null
   })
 
   it('rejects existing files synchronously without changing them', async () => {

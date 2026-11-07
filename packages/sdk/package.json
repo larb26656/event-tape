@@ -4,17 +4,17 @@
   "private": false,
   "type": "module",
   "description": "Event Tape Recorder SDK",
-  "engines": { "node": ">=22" },
-  "types": "./dist/index.d.mts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.mts",
-      "import": "./dist/index.mjs"
-    },
-    "./package.json": "./package.json"
+  "engines": {
+    "node": ">=22"
   },
   "types": "./dist/index.d.mts",
-  "files": ["dist"],
+  "exports": {
+    ".": "./dist/index.mjs",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsdown",
     "typecheck": "tsc --noEmit",
