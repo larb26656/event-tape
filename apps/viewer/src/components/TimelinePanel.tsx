@@ -1,6 +1,5 @@
 import { Button } from '@/components/ui/button'
 import type { RecordingEnvelope } from '@event-tape/recording-format'
-import { EventList } from './EventList'
 import { TimelineOverview } from './TimelineOverview'
 
 type TimelinePanelProps = {
@@ -8,7 +7,6 @@ type TimelinePanelProps = {
   playheadMs: number
   playing: boolean
   speed: 1 | 2 | 4
-  selected: number
   durationMs: number
   canSeek: boolean
   error: string
@@ -17,7 +15,6 @@ type TimelinePanelProps = {
   onToggle: () => void
   onSetSpeed: (speed: 1 | 2 | 4) => void
   onSeek: (positionMs: number) => void
-  onSelectEvent: (index: number) => void
 }
 
 export function TimelinePanel({
@@ -25,7 +22,6 @@ export function TimelinePanel({
   playheadMs,
   playing,
   speed,
-  selected,
   durationMs,
   canSeek,
   error,
@@ -34,10 +30,9 @@ export function TimelinePanel({
   onToggle,
   onSetSpeed,
   onSeek,
-  onSelectEvent,
 }: TimelinePanelProps) {
   return (
-    <div className="bg-card rounded-xl border p-5">
+    <div className="bg-card min-w-0 rounded-xl border p-5">
       <h2 className="mb-4 text-lg font-medium">
         Timeline{' '}
         <span className="text-muted-foreground text-sm">
@@ -100,7 +95,6 @@ export function TimelinePanel({
         disabled={!canSeek}
         onChange={(event) => onSeek(Number(event.target.value))}
       />
-      <EventList events={events} selected={selected} onSelect={onSelectEvent} />
     </div>
   )
 }

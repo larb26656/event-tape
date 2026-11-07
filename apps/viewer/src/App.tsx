@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useStore } from 'zustand'
 import { EventDetailsPanel } from './components/EventDetailsPanel'
+import { EventList } from './components/EventList'
 import { RecordingHeader } from './components/RecordingHeader'
 import { TimelinePanel } from './components/TimelinePanel'
 import { createPlaybackStore } from './playback'
@@ -112,15 +113,20 @@ export default function App() {
   const event = playback.getState().currentEvent()
 
   return (
-    <main className="bg-background text-foreground min-h-svh p-6 md:p-10">
+    <main className="bg-background text-foreground min-h-svh p-4 md:p-8">
       <RecordingHeader onChooseFile={chooseFile} />
-      <section className="mx-auto grid max-w-5xl gap-6 lg:grid-cols-2">
+      <section className="mx-auto grid max-w-screen-2xl items-start gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)_minmax(0,1fr)]">
+        <section aria-labelledby="recording-events-heading" className="bg-card min-w-0 rounded-xl border p-5">
+          <h2 id="recording-events-heading" className="mb-4 text-lg font-medium">
+            Recording events <span className="text-muted-foreground text-sm">({events.length})</span>
+          </h2>
+          <EventList events={events} selected={selected} onSelect={(index) => playback.getState().selectEvent(index)} />
+        </section>
         <TimelinePanel
           events={events}
           playheadMs={playheadMs}
           playing={playing}
           speed={speed}
-          selected={selected}
           durationMs={durationMs}
           canSeek={canSeek}
           error={error}
@@ -129,7 +135,6 @@ export default function App() {
           onToggle={() => playback.getState().toggle()}
           onSetSpeed={(value) => playback.getState().setSpeed(value)}
           onSeek={(value) => playback.getState().seek(value)}
-          onSelectEvent={(index) => playback.getState().selectEvent(index)}
         />
         <EventDetailsPanel event={event} />
       </section>

@@ -15,6 +15,8 @@ The SDK's JSONL contract is versioned. Each event is one JSON object per line wi
 
 Play advances a clock by recorded `elapsedMs` (including quiet intervals), at 1×, 2×, or 4×. The displayed JSON is the latest event at or before the playhead; equal timestamps prefer the highest sequence number. Selecting a timeline event pauses playback and inspects that exact event. Raw JSON displays the selected event envelope and payload. Seeking supports fractional millisecond positions.
 
+The Viewer places the virtualized Recording events list beside the Timeline and Raw JSON inspector. On narrow screens these panes stack in that order. Select an event in the list to pause Playback, move to its recorded time, and inspect its complete envelope and payload. Use the Timeline controls to play, pause, change speed, or seek.
+
 ## Target-size and external-package smoke
 
 A packed-artifact smoke was run from a Vite project initialized by the Vite CLI outside the monorepo. The project installed the SDK and Viewer tarballs locally; its ESM listener recorded request/response/worker events without ACP, awaited `close()`, then the installed `event-tape` CLI served the recording in Chrome 150 on macOS at 1365×768. The Viewer loaded the packaged HTML, scripts, stylesheet, font, and Worker from loopback; browser requests had no non-loopback destinations.
