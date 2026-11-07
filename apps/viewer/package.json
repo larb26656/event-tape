@@ -3,8 +3,9 @@
   "private": false,
   "version": "0.0.1",
   "type": "module",
+  "files": ["dist", "README.md"],
   "bin": { "event-tape": "dist/cli.js" },
-  "files": ["dist"],
+  "engines": { "node": ">=22" },
   "scripts": {
     "dev": "vite --host 0.0.0.0",
     "build": "tsc -b && vite build && node scripts/build-cli.mjs",

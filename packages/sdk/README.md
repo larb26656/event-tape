@@ -6,6 +6,14 @@ Install `@event-tape/sdk` in a Node.js 22+ ESM project. The SDK records JSONL fr
 npm install @event-tape/sdk
 ```
 
+Install the SDK in a Node.js 22+ project:
+
+```sh
+npm install @event-tape/sdk
+```
+
+The SDK is ESM-only, includes TypeScript declarations, and has no runtime dependencies.
+
 ```ts
 import { createRecorder } from '@event-tape/sdk'
 
@@ -27,6 +35,10 @@ try {
 }
 ```
 
-`record()` snapshots its JSON payload synchronously and queues an event. Serialization failures and buffer-limit violations throw synchronously; do not ignore them if a complete recording is required. Write errors are passed to `onError(error)` and reported again by `close()`. Always await `close()` before using the file. A process crash can leave a truncated final JSONL line; the SDK does not guarantee preservation across abrupt system failure.
+`source` is required; `direction` is any string or may be omitted. `payload` must be JSON data. Snapshotting is synchronous when `record()` is called, so later mutations do not affect the recording. Do not record secrets unless filtered by the caller.
 
-The queued data is limited to 16 MiB by default. Set `maxBufferedBytes` to change this limit. An event that would exceed the limit is rejected synchronously while previously accepted events remain queued. The SDK is a Node.js API (it uses filesystem APIs), has no runtime package dependencies, and does not provide Replay or protocol adapters.
+`close()` stops new records and waits for queued writes and the file handle to close. Await it before considering a recording complete. Opening a destination that already exists fails; the SDK never overwrites or appends. Serialization errors and queue-limit errors throw synchronously from `record()`.
+
+The queued data is limited to 16 MiB by default. Set `maxBufferedBytes` to change this limit; an event that would exceed it is rejected synchronously and previously accepted events remain queued. Asynchronous write failures are passed to optional `onError(error)`, stop subsequent records, and are still reported by `close()`. Always catch a rejected `close()`; without `onError`, it is how to observe asynchronous write failure. A process crash can leave a truncated final JSONL line, and the SDK does not guarantee preservation across power loss or other abrupt system failure.
+
+The Viewer is a separate CLI package. Install its packed artifact independently and run `event-tape view ./recordings/session.jsonl`; it serves local static assets on loopback and opens the browser. It does not upload recordings. Playback is view-only and does not emit events to the original application. Viewer accepts this tool's JSONL schema only; it loads recordings in memory, so available browser memory is a practical constraint. The 50 MB and 100,000-event figures are tested targets, not hard limits or performance guarantees beyond those sizes.

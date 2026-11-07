@@ -4,6 +4,8 @@
   "private": false,
   "type": "module",
   "description": "Event Tape Recorder SDK",
+  "engines": { "node": ">=22" },
+  "types": "./dist/index.d.mts",
   "exports": {
     ".": {
       "types": "./dist/index.d.mts",
