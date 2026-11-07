@@ -14,8 +14,7 @@ describe('createRecorder', () => {
     directory = '/path-that-does-not-exist/event-tape'
     expect(() => createRecorder({ file: join(directory, 'recording.jsonl') })).toThrow()
   })
-
-  it('snapshots synchronously and writes ordered v1 JSONL', async () => {
+  it('snapshots synchronously and writes ordered v1 JSONL using elapsed monotonic time', async () => {
     directory = await mkdtemp(join(tmpdir(), 'event-tape-'))
     const file = join(directory, 'nested', 'recording.jsonl')
     const recorder = createRecorder({ file })
