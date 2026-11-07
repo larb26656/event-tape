@@ -7,4 +7,5 @@ await build({
   platform: 'node',
   format: 'esm',
   dts: false,
+  clean: false,
 })
