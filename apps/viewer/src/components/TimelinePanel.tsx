@@ -1,3 +1,4 @@
+import { useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import type { RecordingEnvelope } from '@event-tape/recording-format'
 import { TimelineOverview } from './TimelineOverview'
@@ -31,6 +32,7 @@ export function TimelinePanel({
   onSetSpeed,
   onSeek,
 }: TimelinePanelProps) {
+  const positionControl = useRef<HTMLInputElement>(null)
   return (
     <div className="bg-card min-w-0 rounded-xl border p-5">
       <h2 className="mb-4 text-lg font-medium">
@@ -65,6 +67,7 @@ export function TimelinePanel({
         durationMs={durationMs}
         playheadMs={playheadMs}
         onSeek={onSeek}
+        onKeyboardSeek={() => positionControl.current?.focus()}
       />
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <Button variant="outline" disabled={!canSeek} onClick={onToggle}>
@@ -86,6 +89,7 @@ export function TimelinePanel({
         </span>
       </div>
       <input
+        ref={positionControl}
         aria-label="Playback position"
         className="mb-4 w-full accent-primary"
         type="range"

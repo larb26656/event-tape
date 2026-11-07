@@ -7,10 +7,13 @@ const EVENT_ROW_HEIGHT = 104
 type EventListProps = {
   events: RecordingEnvelope[]
   selected: number
+  playheadMs: number
+  loading: boolean
+  error: string
   onSelect: (index: number) => void
 }
 
-export function EventList({ events, selected, onSelect }: EventListProps) {
+export function EventList({ events, selected, playheadMs, loading, error, onSelect }: EventListProps) {
   const listParent = useRef<HTMLDivElement>(null)
   const focusResult = useRef<number | null>(null)
   const [query, setQuery] = useState('')
@@ -35,7 +38,7 @@ export function EventList({ events, selected, onSelect }: EventListProps) {
     if (selectedResult >= 0) {
       virtualizer.scrollToIndex(selectedResult, { align: 'auto' })
     }
-  }, [selectedResult, virtualizer])
+  }, [selectedResult, playheadMs, virtualizer])
 
   return (
     <div>
@@ -50,9 +53,9 @@ export function EventList({ events, selected, onSelect }: EventListProps) {
         placeholder="Search event JSON"
         className="border-input bg-background focus-visible:ring-ring mb-4 w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:outline-none"
       />
-      {events.length === 0 ? (
+      {!loading && !error && events.length === 0 ? (
         <p className="text-muted-foreground text-sm">No events in this recording.</p>
-      ) : results.length === 0 ? (
+      ) : events.length > 0 && results.length === 0 ? (
         <p className="text-muted-foreground text-sm">No events match your search.</p>
       ) : null}
       <div ref={listParent} aria-label="Recording events" className="max-h-[65vh] overflow-auto">

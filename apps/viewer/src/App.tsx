@@ -120,7 +120,7 @@ export default function App() {
           <h2 id="recording-events-heading" className="mb-4 text-lg font-medium">
             Recording events <span className="text-muted-foreground text-sm">({events.length})</span>
           </h2>
-          <EventList events={events} selected={selected} onSelect={(index) => playback.getState().selectEvent(index)} />
+          <EventList events={events} selected={selected} playheadMs={playheadMs} loading={loading} error={error} onSelect={(index) => playback.getState().selectEvent(index)} />
         </section>
         <TimelinePanel
           events={events}

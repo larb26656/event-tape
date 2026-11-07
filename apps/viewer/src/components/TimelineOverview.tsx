@@ -9,6 +9,7 @@ type TimelineOverviewProps = {
   durationMs: number
   playheadMs: number
   onSeek: (positionMs: number) => void
+  onKeyboardSeek: () => void
 }
 
 export function TimelineOverview({
@@ -16,6 +17,7 @@ export function TimelineOverview({
   durationMs,
   playheadMs,
   onSeek,
+  onKeyboardSeek,
 }: TimelineOverviewProps) {
   const canvas = useRef<HTMLCanvasElement>(null)
   const buckets = useMemo(() => {
@@ -61,6 +63,10 @@ export function TimelineOverview({
       disabled={durationMs <= 0}
       className="bg-muted text-primary mb-3 block w-full overflow-hidden rounded-md border"
       onClick={(event) => {
+        if (event.detail === 0) {
+          onKeyboardSeek()
+          return
+        }
         const bounds = event.currentTarget.getBoundingClientRect()
         onSeek(((event.clientX - bounds.left) / bounds.width) * durationMs)
       }}
