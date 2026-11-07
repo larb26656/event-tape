@@ -1,13 +1,17 @@
 {
   "name": "@event-tape/sdk",
   "version": "0.0.0",
-  "private": true,
+  "private": false,
   "type": "module",
   "description": "Event Tape Recorder SDK",
   "exports": {
-    ".": "./dist/index.mjs",
+    ".": {
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs"
+    },
     "./package.json": "./package.json"
   },
+  "types": "./dist/index.d.mts",
   "files": ["dist"],
   "scripts": {
     "build": "tsdown",
@@ -17,7 +21,6 @@
   },
   "devDependencies": {
     "@event-tape/recording-format": "workspace:*",
-
     "tsdown": "0.23.7",
     "typescript": "6.0.2",
     "eslint": "10.0.1",

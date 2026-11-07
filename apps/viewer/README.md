@@ -1,20 +1,28 @@
-# Viewer Playback
+# Event Tape Viewer
 
-Playback is a view-only timeline inspection tool. Play advances a clock by recorded `elapsedMs` (including quiet intervals), at 1×, 2×, or 4×. The displayed JSON is the latest event at or before the playhead; equal timestamps prefer the highest sequence number. Selecting a timeline event pauses playback and inspects that exact event.
+Install the packed `@event-tape/viewer` package in a Node.js 22+ project. Its `event-tape` executable serves the included static Viewer assets locally; it does not require the Vite development server or a source checkout.
 
-Playback is not Replay: it never emits recorded events to the original application, a protocol, or an adapter. Duration ends at the final event, and playback stops there without looping. An empty recording or one whose final event is at 0 ms cannot be played or sought, but individual events remain inspectable in the timeline.
+```sh
+npm install @event-tape/viewer
+npx event-tape view ./recordings/session.jsonl
+```
 
-## Target-size recordings
+The CLI prints a loopback URL and opens it in the system browser. Use `npx event-tape view ./recordings/session.jsonl --no-browser` to suppress browser launch and copy the printed URL. The CLI serves the selected recording and packaged HTML, JS, CSS, fonts, and parsing Worker from the local machine. The Viewer loads files locally; it does not upload recording contents.
 
-The acceptance target is a recording within both 50 MB and 100,000 events. The event list uses TanStack Virtual and renders only the visible rows plus a small overscan. The timeline overview is a fixed-width canvas summary; it does not create one DOM marker per event. The Web Worker parses the complete recording before the Viewer installs its events for playback; no future events are hidden or discarded to meet the target.
+The SDK's JSONL contract is versioned. Each event is one JSON object per line with a timestamp, increasing sequence number, elapsed milliseconds, source, optional direction, and JSON payload. Malformed, truncated, unsupported, or schema-invalid recordings are shown as load errors rather than silently accepted. Empty recordings load with zero events. A zero-duration recording can be inspected event-by-event, but cannot be played or sought. Playback ends at the final event and never replays events into an application.
 
-The target is not a maximum file size. The Viewer does not reject recordings because they exceed 50 MB or 100,000 events, but performance outside the target is not guaranteed. Full parsing retains events in memory, so available browser memory remains a practical constraint.
+## Playback behavior
 
-### Observed target-size smoke
+Play advances a clock by recorded `elapsedMs` (including quiet intervals), at 1×, 2×, or 4×. The displayed JSON is the latest event at or before the playhead; equal timestamps prefer the highest sequence number. Selecting a timeline event pauses playback and inspects that exact event. Raw JSON displays the selected event envelope and payload.
 
-- Fixture: 100,000 JSONL events, exactly 16,866,680 bytes (16.87 MB decimal; below the 50 MB target).
-- Environment: Viewer CLI on macOS, Chrome 150.0.0.0, 1365×768 viewport.
-- Observed: loaded all 100,000 events; scrolling to the final rows showed #100000 with its matching payload. The virtual list had 13 event rows in the DOM at that viewport. Clicking #99999 showed payload `fixtureEvent: 99999`; seeking to the tied 99,998 ms timestamp showed the higher sequence #100000 and payload `fixtureEvent: 100000`.
-- File change: replaced the loaded recording with a 138-byte one-event file; the count changed to 1 and playback returned to 0.00 / 0.50 s with no stale selection displayed.
+## Target-size and external-package smoke
 
-This is a correctness smoke in one browser environment, not a latency or broader performance guarantee.
+A packed-artifact smoke was run from a Vite project initialized by the Vite CLI outside the monorepo. The project installed the SDK and Viewer tarballs locally; its ESM listener recorded request/response/worker events without ACP, awaited `close()`, then the installed `event-tape` CLI served the recording in Chrome 150 on macOS at 1365×768. The Viewer loaded the packaged HTML, scripts, stylesheet, font, and Worker from loopback; browser requests had no non-loopback destinations.
+
+- Target fixture: 100,000 valid events, 13,466,684 bytes (13.47 MB decimal; below both 50 MB and 100,000-event limits).
+- Observed all events loaded; the virtualized list contained 13 rows at the tested viewport. Scrolling to and selecting #100000 showed its matching payload. Seeking to the tied 99,998 ms timestamp displayed the higher sequence #100000.
+- Playback speed 2× selection and 4× playback reached the final 0.24 s on the three-event consumer recording. Replacing the loaded file reset the Viewer to 0.00 / 0.24 s and showed the new event data.
+- Empty recording showed “No events in this recording.” A valid zero-duration one-event file remained inspectable with Play and seek disabled. An invalid sequence number showed `Line 1: invalid seq` as a load error.
+- CLI requests loaded the packaged Worker and other static assets without a Vite server or source checkout. No requests went to non-loopback origins.
+
+This correctness smoke was run in one browser environment; it is not a latency or broader performance guarantee. The event list uses TanStack Virtual and renders only visible rows plus a small overscan. The timeline overview is a fixed-width canvas summary, not one DOM marker per event. The Worker parses the complete recording; events are not hidden or discarded to meet the target. Files above 50 MB or 100,000 events are not rejected, but performance outside the acceptance target is not guaranteed; parsing retains events in browser memory.
