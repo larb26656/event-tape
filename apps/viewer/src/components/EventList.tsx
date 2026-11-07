@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import type { RecordingEnvelope } from '@event-tape/recording-format'
 
@@ -18,6 +18,12 @@ export function EventList({ events, selected, onSelect }: EventListProps) {
     estimateSize: () => EVENT_ROW_HEIGHT,
     overscan: 8,
   })
+
+  useEffect(() => {
+    if (selected >= 0 && selected < events.length) {
+      virtualizer.scrollToIndex(selected, { align: 'auto' })
+    }
+  }, [events.length, selected, virtualizer])
 
   return (
     <div
@@ -45,6 +51,7 @@ export function EventList({ events, selected, onSelect }: EventListProps) {
               }}
             >
               <button
+                aria-pressed={selected === row.index}
                 className={`hover:bg-accent h-full w-full rounded-lg border p-3 text-left transition-colors ${selected === row.index ? 'bg-accent' : ''}`}
                 onClick={() => onSelect(row.index)}
               >

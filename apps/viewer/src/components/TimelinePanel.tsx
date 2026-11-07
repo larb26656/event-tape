@@ -64,6 +64,7 @@ export function TimelinePanel({
         events={events}
         durationMs={durationMs}
         playheadMs={playheadMs}
+        onSeek={onSeek}
       />
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <Button variant="outline" disabled={!canSeek} onClick={onToggle}>

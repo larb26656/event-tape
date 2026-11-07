@@ -56,16 +56,28 @@ export function createPlaybackStore() {
     advance: (realElapsedMs) => set((state) => {
       if (!state.playing) return {}
       const playheadMs = Math.min(state.durationMs, state.playheadMs + realElapsedMs * state.speed)
-      return { playheadMs, playing: playheadMs < state.durationMs }
+      return { playheadMs, playing: playheadMs < state.durationMs, selectedIndex: -1 }
     }),
-    seek: (elapsedMs) => set((state) => ({ playheadMs: Math.max(0, Math.min(state.durationMs, elapsedMs)), playing: false, selectedIndex: -1 })),
+    seek: (elapsedMs) => set((state) => {
+      const playheadMs = Math.max(0, Math.min(state.durationMs, elapsedMs))
+      let selectedIndex = -1
+      let distance = Infinity
+      state.events.forEach((event, index) => {
+        const candidateDistance = Math.abs(event.elapsedMs - playheadMs)
+        if (candidateDistance < distance || (candidateDistance === distance && event.seq > state.events[selectedIndex]!.seq)) {
+          selectedIndex = index
+          distance = candidateDistance
+        }
+      })
+      return { playheadMs, playing: false, selectedIndex }
+    }),
     selectEvent: (index) => set((state) => {
       const event = state.events[index]
       return event ? { selectedIndex: index, playheadMs: event.elapsedMs, playing: false } : { playing: false }
     }),
     currentEvent: () => {
       const state = get()
-      return state.playing || state.playheadMs !== state.events[state.selectedIndex]?.elapsedMs
+      return state.playing
         ? eventAtTime(state.events, state.playheadMs)
         : state.events[state.selectedIndex] ?? eventAtTime(state.events, state.playheadMs)
     },

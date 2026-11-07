@@ -8,12 +8,14 @@ type TimelineOverviewProps = {
   events: RecordingEnvelope[]
   durationMs: number
   playheadMs: number
+  onSeek: (positionMs: number) => void
 }
 
 export function TimelineOverview({
   events,
   durationMs,
   playheadMs,
+  onSeek,
 }: TimelineOverviewProps) {
   const canvas = useRef<HTMLCanvasElement>(null)
   const buckets = useMemo(() => {
@@ -53,7 +55,16 @@ export function TimelineOverview({
   }, [buckets, durationMs, playheadMs])
 
   return (
-    <div className="bg-muted text-primary mb-3 overflow-hidden rounded-md border">
+    <button
+      type="button"
+      aria-label="Seek on timeline"
+      disabled={durationMs <= 0}
+      className="bg-muted text-primary mb-3 block w-full overflow-hidden rounded-md border"
+      onClick={(event) => {
+        const bounds = event.currentTarget.getBoundingClientRect()
+        onSeek(((event.clientX - bounds.left) / bounds.width) * durationMs)
+      }}
+    >
       <canvas
         ref={canvas}
         aria-label={`${events.length} events summarized across the recording`}
@@ -62,6 +73,6 @@ export function TimelineOverview({
         role="img"
         width={OVERVIEW_WIDTH}
       />
-    </div>
+    </button>
   )
 }

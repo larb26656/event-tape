@@ -74,8 +74,26 @@ describe('playback clock and event lookup', () => {
 
     store.getState().seek(10_000)
 
-    expect(store.getState().selectedIndex).toBe(-1)
+    expect(store.getState().selectedIndex).toBe(2)
     expect(store.getState().currentEvent()?.seq).toBe(4)
+  })
+
+  it('keeps a requested quiet-interval time while inspecting the nearest event', () => {
+    const store = createPlaybackStore()
+    store.getState().setEvents(events)
+    store.getState().play()
+    store.getState().seek(6_000)
+
+    expect(store.getState().playheadMs).toBe(6_000)
+    expect(store.getState().playing).toBe(false)
+    expect(store.getState().currentEvent()?.seq).toBe(4)
+    expect(store.getState().events[store.getState().selectedIndex]?.seq).toBe(4)
+
+    store.getState().seek(5_000)
+    expect(store.getState().currentEvent()?.seq).toBe(4)
+    store.getState().play()
+    store.getState().advance(1)
+    expect(store.getState().currentEvent()?.seq).toBe(1)
   })
 
   it('clears selection and playhead when a different recording is loaded', () => {

@@ -13,7 +13,7 @@ The SDK's JSONL contract is versioned. Each event is one JSON object per line wi
 
 ## Playback behavior
 
-Play advances a clock by recorded `elapsedMs` (including quiet intervals), at 1×, 2×, or 4×. The displayed JSON is the latest event at or before the playhead; equal timestamps prefer the highest sequence number. Selecting a timeline event pauses playback and inspects that exact event. Raw JSON displays the selected event envelope and payload. Seeking supports fractional millisecond positions.
+Play advances a clock by recorded `elapsedMs` (including quiet intervals), at 1×, 2×, or 4×. During automatic Playback, the displayed JSON is the latest event at or before the playhead; equal timestamps prefer the highest sequence number. Clicking the Timeline or seeking with the position control pauses Playback and inspects the nearest event while retaining the requested playhead time. Equidistant events and duplicate timestamps prefer the highest sequence number. Selecting a list event instead pauses and inspects that exact event at its recorded time, including individually selectable events with duplicate timestamps. Raw JSON displays the selected event envelope and payload. Seeking supports fractional millisecond positions.
 
 The Viewer places the virtualized Recording events list beside the Timeline and Raw JSON inspector. On narrow screens these panes stack in that order. Select an event in the list to pause Playback, move to its recorded time, and inspect its complete envelope and payload. Use the Timeline controls to play, pause, change speed, or seek.
 
