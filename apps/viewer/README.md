@@ -17,6 +17,8 @@ Play advances a clock by recorded `elapsedMs` (including quiet intervals), at 1Ã
 
 The Viewer places the virtualized Recording events list beside the Timeline and Raw JSON inspector. On narrow screens these panes stack in that order. Select an event in the list to pause Playback, move to its recorded time, and inspect its complete envelope and payload. Use the Timeline controls to play, pause, change speed, or seek.
 
+Search events matches a case-insensitive substring anywhere in the complete event JSON, including field names and nested payloads. It filters only the list: the Timeline, Playback, and inspected event remain unchanged, even when the selected event is hidden. Clear the search to restore all events. Regular expressions, structured queries, and saved searches are not supported.
+
 ## Target-size and external-package smoke
 
 A packed-artifact smoke was run from a Vite project initialized by the Vite CLI outside the monorepo. The project installed the SDK and Viewer tarballs locally; its ESM listener recorded request/response/worker events without ACP, awaited `close()`, then the installed `event-tape` CLI served the recording in Chrome 150 on macOS at 1365Ã—768. The Viewer loaded the packaged HTML, scripts, stylesheet, font, and Worker from loopback; browser requests had no non-loopback destinations.
