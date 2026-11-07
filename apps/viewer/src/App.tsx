@@ -4,7 +4,11 @@ import { Button } from '@/components/ui/button'
 import { createPlaybackStore } from './playback'
 import type { RecordingEnvelope } from '@event-tape/recording-format'
 
-type WorkerResult = { events?: RecordingEnvelope[]; error?: string }
+type WorkerResult = {
+  events?: RecordingEnvelope[]
+  warning?: string
+  error?: string
+}
 
 export default function App() {
   const [playback] = useState(createPlaybackStore)
@@ -16,6 +20,7 @@ export default function App() {
   const durationMs = useStore(playback, (state) => state.durationMs)
   const canSeek = useStore(playback, (state) => state.canSeek)
   const [error, setError] = useState('')
+  const [warning, setWarning] = useState('')
   const [loading, setLoading] = useState(true)
   useEffect(() => {
     if (!playing) return
@@ -35,8 +40,14 @@ export default function App() {
       { type: 'module' },
     )
     worker.onmessage = (message: MessageEvent<WorkerResult>) => {
-      if (message.data.error) setError(message.data.error)
-      else playback.getState().setEvents(message.data.events ?? [])
+      if (message.data.error) {
+        setError(message.data.error)
+        playback.getState().setEvents([])
+        setWarning('')
+      } else {
+        playback.getState().setEvents(message.data.events ?? [])
+        setWarning(message.data.warning ?? '')
+      }
       setLoading(false)
     }
     fetch('/recording.jsonl')
@@ -52,8 +63,8 @@ export default function App() {
     return () => worker.terminate()
   }, [playback])
   const chooseFile = (file?: File) => {
-    if (!file) return
     setError('')
+    setWarning('')
     setLoading(true)
     playback.getState().setEvents([])
     const worker = new Worker(
@@ -61,8 +72,14 @@ export default function App() {
       { type: 'module' },
     )
     worker.onmessage = (message: MessageEvent<WorkerResult>) => {
-      if (message.data.error) setError(message.data.error)
-      else playback.getState().setEvents(message.data.events ?? [])
+      if (message.data.error) {
+        setError(message.data.error)
+        playback.getState().setEvents([])
+        setWarning('')
+      } else {
+        playback.getState().setEvents(message.data.events ?? [])
+        setWarning(message.data.warning ?? '')
+      }
       setLoading(false)
       worker.terminate()
     }
@@ -100,6 +117,14 @@ export default function App() {
               ({events.length} events)
             </span>
           </h2>
+          {warning && (
+            <div
+              role="status"
+              className="bg-muted text-muted-foreground mb-4 rounded-lg border p-3 text-sm"
+            >
+              Recording recovery warning: {warning}
+            </div>
+          )}
           {error && (
             <p role="alert" className="text-destructive">
               {error}

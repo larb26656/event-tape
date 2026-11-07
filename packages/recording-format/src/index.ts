@@ -32,3 +32,39 @@ export function parseEnvelope(value: unknown): RecordingEnvelope {
   if (!('payload' in event)) throw new Error('missing payload')
   return event as unknown as RecordingEnvelope
 }
+
+export interface RecordingJsonlResult {
+  events: RecordingEnvelope[]
+  warning?: string
+}
+
+export function parseRecordingJsonl(text: string): RecordingJsonlResult {
+  const lines = text.split('\n')
+  const hasFinalNewline = text.endsWith('\n')
+  const events: RecordingEnvelope[] = []
+
+  for (let index = 0; index < lines.length; index++) {
+    const line = lines[index] ?? ''
+    if (!line.trim()) continue
+    let value: unknown
+    try {
+      value = JSON.parse(line)
+    } catch (cause) {
+      if (!hasFinalNewline && index === lines.length - 1) {
+        return {
+          events,
+          warning: `Line ${index + 1}: incomplete final JSON; later recording data may be missing.`,
+        }
+      }
+      const detail = cause instanceof Error ? cause.message : String(cause)
+      throw new Error(`Line ${index + 1}: invalid JSON: ${detail}`, { cause })
+    }
+    try {
+      events.push(parseEnvelope(value))
+    } catch (cause) {
+      const detail = cause instanceof Error ? cause.message : String(cause)
+      throw new Error(`Line ${index + 1}: ${detail}`, { cause })
+    }
+  }
+  return { events }
+}
