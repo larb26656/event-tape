@@ -17,19 +17,19 @@ Dependency versions, the Node.js requirement, exports, and scripts are authorita
 
 ## Start here
 
-- Read `README.md` for the public lifecycle and failure contract, `src/index.ts` for implementation, and `src/index.test.ts` before changing recording or shutdown.
+- Read `README.md` for the public lifecycle and failure contract, `src/index.ts` for public exports, `src/recorder.ts` for Recorder behavior, and the adjacent Recorder/File Writer tests before changing recording or shutdown.
 - For envelope changes, read `../recording-format/src/index.ts` and check the Viewer consumer in `../../apps/viewer/src/recording.worker.ts`.
 - For publishing or exports, read `package.json` and `tsdown.config.ts`, then verify the packed consumer path described below.
 
 ## Invariants to protect
 
-- Create parent directories and open the destination synchronously with exclusive creation. Existing files remain untouched; appending or overwriting changes the public safety contract.
+- File Writer creates parent directories and opens the destination synchronously with exclusive creation. Existing files remain untouched; appending or overwriting changes the public safety contract. It owns JSONL encoding and descriptor writes/closure; Recorder owns snapshots, metadata, queue order and byte accounting.
 - `record()` snapshots and validates the payload before returning. Later caller mutation must not affect accepted data. Preserve synchronous rejection of serialization failures and lossy JSON values rather than quietly omitting or rewriting them.
 - Only accepted events consume sequence numbers or establish the elapsed-time origin. Use monotonic elapsed time for timing and wall-clock ISO timestamps for the envelope timestamp.
 - Serialize writes in acceptance order and finish partial writes before moving to the next event. A successful `record()` means queued, not flushed or crash-durable.
 - Account for buffered UTF-8 bytes, not string length. Rejection at the byte limit must leave previously accepted writes queued and the rejected event uncommitted.
 - Keep the first asynchronous write failure authoritative: report it through `onError` when supplied, reject later records, and reject `close()`. An exception from the error callback must not replace the write failure.
-- `close()` immediately stops acceptance, drains queued work, and closes the descriptor. Repeated calls return the same promise. Require callers and examples to await it; do not add a process-exit hook as a substitute.
+- `close()` immediately stops acceptance, drains queued work, and closes the Writer. Repeated calls return the same promise. Require callers and examples to await it; do not add a process-exit hook as a substitute.
 
 ## Verify the changed path
 
