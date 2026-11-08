@@ -72,6 +72,10 @@ pnpm --filter @event-tape/cli... build
 
 Then use `node packages/cli/dist/cli.mjs` in place of `event-tape` in the examples below. For a published CLI, install it with `npm install --global @event-tape/cli`.
 
+For local development, `pnpm local:build:cli` builds the CLI and links `event-tape` into pnpm's global bin directory. That directory must be on `PATH` (run `pnpm setup` if needed). The link points into this repository.
+
+Run `pnpm local:build:sdk` to build the SDK and create `event-tape-sdk.tgz` in the repository root. The command prints an `npm install` command with its absolute path for use in another project.
+
 ### 2. Record events
 To capture direct HTTP requests:
 

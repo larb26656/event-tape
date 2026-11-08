@@ -11,6 +11,8 @@
     "dev:player": "pnpm --filter @event-tape/player dev",
     "dev:cli": "pnpm --filter @event-tape/cli... build && node packages/cli/dist/cli.mjs",
     "view:sample": "pnpm --filter @event-tape/cli... build && node packages/cli/dist/cli.mjs view ./sample-recording.jsonl",
+    "local:build:cli": "pnpm --filter @event-tape/cli... build && bin_dir=\"$(pnpm bin --global)\" && mkdir -p \"$bin_dir\" && ln -sf \"$PWD/packages/cli/dist/cli.mjs\" \"$bin_dir/event-tape\"",
+    "local:build:sdk": "pnpm --filter @event-tape/sdk... build && pnpm --filter @event-tape/sdk pack --out \"$PWD/event-tape-sdk.tgz\" && printf '\\nInstall in your project:\\n  npm install \"%s/event-tape-sdk.tgz\"\\n' \"$PWD\"",
     "build": "turbo run build",
     "typecheck": "turbo run typecheck",
     "lint": "turbo run lint",
@@ -24,8 +26,8 @@
     "globals": "17.3.0",
     "prettier": "3.9.6",
     "prettier-plugin-tailwindcss": "0.8.1",
+    "turbo": "2.11.10",
     "typescript": "6.0.2",
-    "typescript-eslint": "8.56.0",
-    "turbo": "2.11.10"
+    "typescript-eslint": "8.56.0"
   }
 }
