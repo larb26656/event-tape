@@ -43,8 +43,8 @@ export function TimelinePanel({
   const [mark, setMark] = useState<{ events: RecordingEnvelope[]; start: number } | null>(null)
   const rangeStart = mark?.events === events ? mark.start : null
   return (
-    <div className="bg-card min-w-0 rounded-xl border p-5">
-      <h2 className="mb-4 text-lg font-medium">
+    <div className="timeline-panel bg-card min-w-0 rounded-xl border p-5">
+      <h2 className="timeline-heading mb-4 text-lg font-medium">
         Timeline{' '}
         <span className="text-muted-foreground text-sm">
           ({events.length} events)
@@ -80,10 +80,10 @@ export function TimelinePanel({
         onSeek={onSeek}
         onKeyboardSeek={() => positionControl.current?.focus()}
       />
-      <p className="text-muted-foreground mb-3 text-sm">Drag to select an inclusive playback range; click to seek.</p>
-      <div className="mb-5 rounded-lg border p-4">
-        <div className="mb-3 flex items-center justify-between gap-2">
-          <span className="text-sm font-medium">Playback</span>
+      <p className="timeline-overview-help text-muted-foreground mb-3 text-sm">Drag to select an inclusive playback range; click to seek.</p>
+      <div className="timeline-controls mb-5 rounded-lg border p-4">
+        <div className="timeline-controls-header mb-3 flex items-center justify-between gap-2">
+          <span className="timeline-playback-label text-sm font-medium">Playback</span>
           <label className="text-muted-foreground flex items-center gap-1 text-xs">
             Speed
             <select aria-label="Playback speed" value={speed} disabled={!canSeek} onChange={(event) => onSetSpeed(Number(event.target.value) as TimelinePanelProps['speed'])} className="text-foreground bg-background rounded-md border px-2 py-1.5 text-sm">
@@ -91,7 +91,7 @@ export function TimelinePanel({
             </select>
           </label>
         </div>
-        <div className="flex items-center justify-center gap-3">
+        <div className="timeline-buttons flex items-center justify-center gap-3">
           <Button type="button" variant="ghost" size="icon" aria-label="Go to range start" disabled={!canSeek} onClick={() => onSeek(range?.[0] ?? 0)}><SkipBack /></Button>
           <Button type="button" size="icon" aria-label={playing ? 'Pause' : 'Play'} disabled={!canSeek || (range !== null && range[0] === range[1])} onClick={onToggle}>{playing ? <Pause /> : <Play />}</Button>
           <Button type="button" variant="ghost" size="icon" aria-label="Go to range end" disabled={!canSeek} onClick={() => onSeek(range?.[1] ?? durationMs)}><SkipForward /></Button>
@@ -100,7 +100,7 @@ export function TimelinePanel({
           ref={positionControl}
           aria-label="Playback position"
           aria-describedby="range-keyboard-help"
-          className="mt-4 w-full accent-primary"
+          className="timeline-position mt-4 w-full accent-primary"
           type="range"
           min={range?.[0] ?? 0}
           max={range?.[1] ?? durationMs}
@@ -117,11 +117,11 @@ export function TimelinePanel({
             }
           }}
         />
-        <div className="mt-1 text-center text-muted-foreground font-mono text-xs tabular-nums">
+        <div className="timeline-time mt-1 text-center text-muted-foreground font-mono text-xs tabular-nums">
           {(playheadMs / 1000).toFixed(2)} / {(durationMs / 1000).toFixed(2)} s
         </div>
       </div>
-      <p id="range-keyboard-help" className="text-muted-foreground mb-3 text-xs">On the playback position, press I to mark a range start, then O to mark its end. Clear the range first to select outside it.</p>
+      <p id="range-keyboard-help" className="timeline-keyboard-help text-muted-foreground mb-3 text-xs">On the playback position, press I to mark a range start, then O to mark its end. Clear the range first to select outside it.</p>
       <p role="status" className="text-muted-foreground text-xs">{rangeStart !== null ? `Range start marked at ${(rangeStart / 1000).toFixed(2)} s. Move the playhead and press O.` : ''}</p>
       {range && <Button type="button" variant="outline" onClick={() => { setMark(null); onClearRange() }}>Clear range</Button>}
     </div>

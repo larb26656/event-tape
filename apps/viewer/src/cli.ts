@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { createServer } from 'node:http'
 import { readFile, stat } from 'node:fs/promises'
-import { extname, resolve } from 'node:path'
+import { basename, extname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const args = process.argv.slice(2)
@@ -20,6 +20,11 @@ const mime: Record<string, string> = {
 const server = createServer(async (request, response) => {
   try {
     const pathname = new URL(request.url ?? '/', 'http://localhost').pathname
+    if (pathname === '/recording-metadata.json' && request.method === 'GET') {
+      response.setHeader('content-type', 'application/json; charset=utf-8')
+      response.end(JSON.stringify({ name: basename(recording) }))
+      return
+    }
     if (pathname === '/recording.jsonl') {
       response.setHeader('content-type', 'application/x-ndjson; charset=utf-8')
       response.end(await readFile(recording))
