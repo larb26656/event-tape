@@ -54,6 +54,7 @@
     "zustand": "5.0.11"
   },
   "dependencies": {
+    "commander": "15.1.0",
     "react-resizable-panels": "^4.19.1"
   }
 }
