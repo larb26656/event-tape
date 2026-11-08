@@ -18,7 +18,7 @@ Playback is **view-only**: it does not send events back to an application. Repla
 
 ## Requirements
 
-- Node.js 22 or newer (Vite 8 requires Node.js 20.19+ or 22.12+)
+- Node.js >=22.12.0 for the Viewer CLI (the Recorder SDK runtime requirement remains unchanged)
 - pnpm 11.9.0 (Corepack can provide the pinned version)
 
 ## Quick start

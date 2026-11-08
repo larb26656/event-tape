@@ -1,6 +1,6 @@
 # Event Tape Viewer
 
-Install the packed `@event-tape/viewer` package in a Node.js 22+ project. Its `event-tape` executable serves the included static Viewer assets locally; it does not require the Vite development server or a source checkout.
+Install the packed `@event-tape/viewer` package in a Node.js >=22.12.0 project. Its `event-tape` executable serves the included static Viewer assets locally; it does not require the Vite development server or a source checkout.
 
 ```sh
 npm install @event-tape/viewer
