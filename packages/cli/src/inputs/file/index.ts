@@ -1,5 +1,5 @@
 import type { Recorder } from '@event-tape/sdk'
-import type { InputDefinition, RunningInput } from '../input.js'
+import { createInput, type RunningInput } from '../input.js'
 import { startFile } from './follow.js'
 import { resolveOptions, type FileOptions } from './options.js'
 
@@ -23,7 +23,7 @@ async function start(options: FileOptions, recorder: Recorder, fatal: (error: Er
   }
 }
 
-export const fileInput: InputDefinition<FileOptions> = {
+export const fileInput = createInput({
   name: 'file',
   description: 'Record lines appended to a file',
   presets: {},
@@ -36,4 +36,4 @@ export const fileInput: InputDefinition<FileOptions> = {
   },
   resolve: resolveOptions,
   start,
-}
+})
