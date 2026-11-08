@@ -1,7 +1,11 @@
 import { createServer, type Server } from 'node:http'
 import { readFile, stat } from 'node:fs/promises'
 import { basename, extname, resolve } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { createRequire } from 'node:module'
+import { dirname } from 'node:path'
+
+const require = createRequire(import.meta.url)
+const assets = dirname(require.resolve('@event-tape/player/index.html'))
 
 const mime: Record<string, string> = {
   '.html': 'text/html; charset=utf-8',
@@ -14,7 +18,6 @@ const mime: Record<string, string> = {
 export async function serveRecording(recordingPath: string): Promise<Server> {
   const recording = resolve(recordingPath)
   await stat(recording)
-  const assets = resolve(fileURLToPath(new URL('.', import.meta.url)))
   const server = createServer(async (request, response) => {
     try {
       const pathname = new URL(request.url ?? '/', 'http://localhost').pathname

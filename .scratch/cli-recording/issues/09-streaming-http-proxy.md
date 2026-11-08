@@ -1,6 +1,6 @@
 # 09: ส่งต่อ HTTP แบบ Streaming Proxy พร้อมบันทึกสองทิศทาง
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 **Spec:** [Separate CLI and Player packages and record HTTP traffic](../spec.md)
 
@@ -20,3 +20,7 @@
 - [ ] Idle timeout 30 วินาทีปรับได้ไม่ตัด active long stream; shutdown ใช้งบรวมเดิมรวม in-flight proxy และ Writer close บันทึกสิ่งที่ finalize ได้และรายงานงานไม่สมบูรณ์เมื่อ deadline หมด
 - [ ] ตรวจ real HTTP และ HTTPS fixture upstream จาก installed CLI พร้อม method/query, repeated headers, payload ใหญ่, binary/multibyte, concurrent correlation, redirect/no-retry, abort/timeout และ graceful stop; เปิด resulting Recording ใน Player จริง
 - [ ] อัปเดต docs/help proxy modes, upstream, streaming/error/truncation/privacy และข้อจำกัด ไม่เพิ่ม receiving HTTPS, MITM, WS หรือ replay
+
+## Answer
+
+Implemented on `integration-cli-recording` in `ebdcaa5`, with idle-progress follow-up in `bacc8b1`. Proxy tests exercised a packed installation; a proxy Recording opened in the installed Player. Eight concurrent 512 KiB slow-peer transfers were exercised, not benchmarked.

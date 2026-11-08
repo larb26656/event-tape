@@ -6,6 +6,8 @@ Install `@event-tape/sdk` in a Node.js 22+ ESM project. The SDK records JSONL fr
 npm install @event-tape/sdk
 ```
 
+For installation from a local checkout without publishing to a registry, see the [local packaging instructions](../../README.md#1-build-and-install).
+
 The SDK is ESM-only, includes TypeScript declarations, and has no runtime dependencies.
 
 ```ts

@@ -38,9 +38,6 @@ importers:
 
   apps/player:
     dependencies:
-      commander:
-        specifier: 15.1.0
-        version: 15.1.0
       react-resizable-panels:
         specifier: ^4.19.1
         version: 4.19.1(@types/react@19.2.14)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
@@ -59,7 +56,7 @@ importers:
         version: 5.3.0
       '@tailwindcss/vite':
         specifier: 4.1.18
-        version: 4.1.18(vite@8.0.0(@emnapi/core@2.0.0-beta.2)(@emnapi/runtime@2.0.0-beta.2)(@types/node@22.19.15)(esbuild@0.27.3)(jiti@2.7.0))
+        version: 4.1.18(vite@8.0.0(@emnapi/core@2.0.0-beta.2)(@emnapi/runtime@2.0.0-beta.2)(@types/node@22.19.15)(esbuild@0.27.3)(jiti@2.7.0)(yaml@2.8.1))
       '@tanstack/react-virtual':
         specifier: ^3.14.26
         version: 3.14.26(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
@@ -74,7 +71,7 @@ importers:
         version: 19.2.3(@types/react@19.2.14)
       '@vitejs/plugin-react':
         specifier: 6.0.1
-        version: 6.0.1(vite@8.0.0(@emnapi/core@2.0.0-beta.2)(@emnapi/runtime@2.0.0-beta.2)(@types/node@22.19.15)(esbuild@0.27.3)(jiti@2.7.0))
+        version: 6.0.1(vite@8.0.0(@emnapi/core@2.0.0-beta.2)(@emnapi/runtime@2.0.0-beta.2)(@types/node@22.19.15)(esbuild@0.27.3)(jiti@2.7.0)(yaml@2.8.1))
       class-variance-authority:
         specifier: 0.7.1
         version: 0.7.1
@@ -114,9 +111,6 @@ importers:
       tailwindcss:
         specifier: 4.1.18
         version: 4.1.18
-      tsdown:
-        specifier: 0.23.7
-        version: 0.23.7(typescript@6.0.2)
       tw-animate-css:
         specifier: 1.4.0
         version: 1.4.0
@@ -128,13 +122,47 @@ importers:
         version: 8.56.0(eslint@10.0.1(jiti@2.7.0))(typescript@6.0.2)
       vite:
         specifier: 8.0.0
-        version: 8.0.0(@emnapi/core@2.0.0-beta.2)(@emnapi/runtime@2.0.0-beta.2)(@types/node@22.19.15)(esbuild@0.27.3)(jiti@2.7.0)
+        version: 8.0.0(@emnapi/core@2.0.0-beta.2)(@emnapi/runtime@2.0.0-beta.2)(@types/node@22.19.15)(esbuild@0.27.3)(jiti@2.7.0)(yaml@2.8.1)
       vitest:
         specifier: 4.1.0
-        version: 4.1.0(@types/node@22.19.15)(vite@8.0.0(@emnapi/core@2.0.0-beta.2)(@emnapi/runtime@2.0.0-beta.2)(@types/node@22.19.15)(esbuild@0.27.3)(jiti@2.7.0))
+        version: 4.1.0(@types/node@22.19.15)(vite@8.0.0(@emnapi/core@2.0.0-beta.2)(@emnapi/runtime@2.0.0-beta.2)(@types/node@22.19.15)(esbuild@0.27.3)(jiti@2.7.0)(yaml@2.8.1))
       zustand:
         specifier: 5.0.11
         version: 5.0.11(@types/react@19.2.14)(react@19.3.1)(use-sync-external-store@1.7.0(react@19.3.1))
+
+  packages/cli:
+    dependencies:
+      '@event-tape/player':
+        specifier: workspace:0.0.1
+        version: link:../../apps/player
+      '@event-tape/sdk':
+        specifier: workspace:0.0.0
+        version: link:../sdk
+      commander:
+        specifier: 15.1.0
+        version: 15.1.0
+      yaml:
+        specifier: 2.8.1
+        version: 2.8.1
+      zod:
+        specifier: 4.3.6
+        version: 4.3.6
+    devDependencies:
+      '@types/node':
+        specifier: 22.19.15
+        version: 22.19.15
+      eslint:
+        specifier: 10.0.1
+        version: 10.0.1(jiti@2.7.0)
+      tsdown:
+        specifier: 0.23.7
+        version: 0.23.7(typescript@6.0.2)
+      typescript:
+        specifier: 6.0.2
+        version: 6.0.2
+      vitest:
+        specifier: 4.1.0
+        version: 4.1.0(@types/node@22.19.15)(vite@8.0.0(@emnapi/core@2.0.0-beta.2)(@emnapi/runtime@2.0.0-beta.2)(@types/node@22.19.15)(esbuild@0.27.3)(jiti@2.7.0)(yaml@2.8.1))
 
   packages/recording-format:
     devDependencies:
@@ -146,7 +174,7 @@ importers:
         version: 6.0.2
       vitest:
         specifier: 4.1.0
-        version: 4.1.0(@types/node@22.19.15)(vite@8.0.0(@emnapi/core@2.0.0-beta.2)(@emnapi/runtime@2.0.0-beta.2)(@types/node@22.19.15)(esbuild@0.27.3)(jiti@2.7.0))
+        version: 4.1.0(@types/node@22.19.15)(vite@8.0.0(@emnapi/core@2.0.0-beta.2)(@emnapi/runtime@2.0.0-beta.2)(@types/node@22.19.15)(esbuild@0.27.3)(jiti@2.7.0)(yaml@2.8.1))
 
   packages/sdk:
     devDependencies:
@@ -167,7 +195,7 @@ importers:
         version: 6.0.2
       vitest:
         specifier: 4.1.0
-        version: 4.1.0(@types/node@22.19.15)(vite@8.0.0(@emnapi/core@2.0.0-beta.2)(@emnapi/runtime@2.0.0-beta.2)(@types/node@22.19.15)(esbuild@0.27.3)(jiti@2.7.0))
+        version: 4.1.0(@types/node@22.19.15)(vite@8.0.0(@emnapi/core@2.0.0-beta.2)(@emnapi/runtime@2.0.0-beta.2)(@types/node@22.19.15)(esbuild@0.27.3)(jiti@2.7.0)(yaml@2.8.1))
 
 packages:
 
@@ -1994,6 +2022,11 @@ packages:
   yallist@3.1.1:
     resolution: {integrity: sha512-a4UGQaWPH59mOXUYnAG2ewncQS4i4F43Tv3JoAM+s2VDAmS9NsK8GpDMLrCHPksFT7h3K6TOoUNn2pb7RoXx4g==}
 
+  yaml@2.8.1:
+    resolution: {integrity: sha512-lcYcMxX2PO9XMGvAJkJ3OsNMw+/7FKes7/hgerGUYWIoWu5j/+YQqcZr5JnPZWzOsEBgMbSbiSTn/dv/69Mkpw==}
+    engines: {node: '>= 14.6'}
+    hasBin: true
+
   yocto-queue@0.1.0:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
@@ -2012,6 +2045,9 @@ packages:
     engines: {node: '>=18.0.0'}
     peerDependencies:
       zod: ^3.25.0 || ^4.0.0
+
+  zod@4.3.6:
+    resolution: {integrity: sha512-rftlrkhHZOcjDwkGlnUtZZkvaPHCsDATp4pGpuOOMDaTdDDXF91wuVDJoWoPsKX/3YPQ5fHuF3STjcYyKr+Qhg==}
 
   zod@4.6.7:
     resolution: {integrity: sha512-g8W2D2kU6a8untc053fX1uVBKzM7yqAxW/3zwk83+6RyF2+SKOuV+c0wBDhUwzV1PaGapmZH+rmcUzPf+3CGwg==}
@@ -2538,12 +2574,12 @@ snapshots:
       '@tailwindcss/oxide-win32-arm64-msvc': 4.1.18
       '@tailwindcss/oxide-win32-x64-msvc': 4.1.18
 
-  '@tailwindcss/vite@4.1.18(vite@8.0.0(@emnapi/core@2.0.0-beta.2)(@emnapi/runtime@2.0.0-beta.2)(@types/node@22.19.15)(esbuild@0.27.3)(jiti@2.7.0))':
+  '@tailwindcss/vite@4.1.18(vite@8.0.0(@emnapi/core@2.0.0-beta.2)(@emnapi/runtime@2.0.0-beta.2)(@types/node@22.19.15)(esbuild@0.27.3)(jiti@2.7.0)(yaml@2.8.1))':
     dependencies:
       '@tailwindcss/node': 4.1.18
       '@tailwindcss/oxide': 4.1.18
       tailwindcss: 4.1.18
-      vite: 8.0.0(@emnapi/core@2.0.0-beta.2)(@emnapi/runtime@2.0.0-beta.2)(@types/node@22.19.15)(esbuild@0.27.3)(jiti@2.7.0)
+      vite: 8.0.0(@emnapi/core@2.0.0-beta.2)(@emnapi/runtime@2.0.0-beta.2)(@types/node@22.19.15)(esbuild@0.27.3)(jiti@2.7.0)(yaml@2.8.1)
 
   '@tanstack/react-virtual@3.14.26(react-dom@19.3.1(react@19.3.1))(react@19.3.1)':
     dependencies:
@@ -2700,10 +2736,10 @@ snapshots:
       '@typescript-eslint/types': 8.56.0
       eslint-visitor-keys: 5.0.1
 
-  '@vitejs/plugin-react@6.0.1(vite@8.0.0(@emnapi/core@2.0.0-beta.2)(@emnapi/runtime@2.0.0-beta.2)(@types/node@22.19.15)(esbuild@0.27.3)(jiti@2.7.0))':
+  '@vitejs/plugin-react@6.0.1(vite@8.0.0(@emnapi/core@2.0.0-beta.2)(@emnapi/runtime@2.0.0-beta.2)(@types/node@22.19.15)(esbuild@0.27.3)(jiti@2.7.0)(yaml@2.8.1))':
     dependencies:
       '@rolldown/pluginutils': 1.0.0-rc.7
-      vite: 8.0.0(@emnapi/core@2.0.0-beta.2)(@emnapi/runtime@2.0.0-beta.2)(@types/node@22.19.15)(esbuild@0.27.3)(jiti@2.7.0)
+      vite: 8.0.0(@emnapi/core@2.0.0-beta.2)(@emnapi/runtime@2.0.0-beta.2)(@types/node@22.19.15)(esbuild@0.27.3)(jiti@2.7.0)(yaml@2.8.1)
 
   '@vitest/expect@4.1.0':
     dependencies:
@@ -2714,13 +2750,13 @@ snapshots:
       chai: 6.3.0
       tinyrainbow: 3.2.0
 
-  '@vitest/mocker@4.1.0(vite@8.0.0(@emnapi/core@2.0.0-beta.2)(@emnapi/runtime@2.0.0-beta.2)(@types/node@22.19.15)(esbuild@0.27.3)(jiti@2.7.0))':
+  '@vitest/mocker@4.1.0(vite@8.0.0(@emnapi/core@2.0.0-beta.2)(@emnapi/runtime@2.0.0-beta.2)(@types/node@22.19.15)(esbuild@0.27.3)(jiti@2.7.0)(yaml@2.8.1))':
     dependencies:
       '@vitest/spy': 4.1.0
       estree-walker: 3.0.3
       magic-string: 0.30.21
     optionalDependencies:
-      vite: 8.0.0(@emnapi/core@2.0.0-beta.2)(@emnapi/runtime@2.0.0-beta.2)(@types/node@22.19.15)(esbuild@0.27.3)(jiti@2.7.0)
+      vite: 8.0.0(@emnapi/core@2.0.0-beta.2)(@emnapi/runtime@2.0.0-beta.2)(@types/node@22.19.15)(esbuild@0.27.3)(jiti@2.7.0)(yaml@2.8.1)
 
   '@vitest/pretty-format@4.1.0':
     dependencies:
@@ -3446,7 +3482,7 @@ snapshots:
 
   verkit@0.5.0: {}
 
-  vite@8.0.0(@emnapi/core@2.0.0-beta.2)(@emnapi/runtime@2.0.0-beta.2)(@types/node@22.19.15)(esbuild@0.27.3)(jiti@2.7.0):
+  vite@8.0.0(@emnapi/core@2.0.0-beta.2)(@emnapi/runtime@2.0.0-beta.2)(@types/node@22.19.15)(esbuild@0.27.3)(jiti@2.7.0)(yaml@2.8.1):
     dependencies:
       '@oxc-project/runtime': 0.115.0
       lightningcss: 1.33.0
@@ -3459,14 +3495,15 @@ snapshots:
       esbuild: 0.27.3
       fsevents: 2.3.3
       jiti: 2.7.0
+      yaml: 2.8.1
     transitivePeerDependencies:
       - '@emnapi/core'
       - '@emnapi/runtime'
 
-  vitest@4.1.0(@types/node@22.19.15)(vite@8.0.0(@emnapi/core@2.0.0-beta.2)(@emnapi/runtime@2.0.0-beta.2)(@types/node@22.19.15)(esbuild@0.27.3)(jiti@2.7.0)):
+  vitest@4.1.0(@types/node@22.19.15)(vite@8.0.0(@emnapi/core@2.0.0-beta.2)(@emnapi/runtime@2.0.0-beta.2)(@types/node@22.19.15)(esbuild@0.27.3)(jiti@2.7.0)(yaml@2.8.1)):
     dependencies:
       '@vitest/expect': 4.1.0
-      '@vitest/mocker': 4.1.0(vite@8.0.0(@emnapi/core@2.0.0-beta.2)(@emnapi/runtime@2.0.0-beta.2)(@types/node@22.19.15)(esbuild@0.27.3)(jiti@2.7.0))
+      '@vitest/mocker': 4.1.0(vite@8.0.0(@emnapi/core@2.0.0-beta.2)(@emnapi/runtime@2.0.0-beta.2)(@types/node@22.19.15)(esbuild@0.27.3)(jiti@2.7.0)(yaml@2.8.1))
       '@vitest/pretty-format': 4.1.0
       '@vitest/runner': 4.1.0
       '@vitest/snapshot': 4.1.0
@@ -3483,7 +3520,7 @@ snapshots:
       tinyexec: 1.3.1
       tinyglobby: 0.2.17
       tinyrainbow: 3.2.0
-      vite: 8.0.0(@emnapi/core@2.0.0-beta.2)(@emnapi/runtime@2.0.0-beta.2)(@types/node@22.19.15)(esbuild@0.27.3)(jiti@2.7.0)
+      vite: 8.0.0(@emnapi/core@2.0.0-beta.2)(@emnapi/runtime@2.0.0-beta.2)(@types/node@22.19.15)(esbuild@0.27.3)(jiti@2.7.0)(yaml@2.8.1)
       why-is-node-running: 2.3.0
     optionalDependencies:
       '@types/node': 22.19.15
@@ -3503,6 +3540,8 @@ snapshots:
 
   yallist@3.1.1: {}
 
+  yaml@2.8.1: {}
+
   yocto-queue@0.1.0: {}
 
   yuku@0.27.0:
@@ -3517,6 +3556,8 @@ snapshots:
   zod-validation-error@4.0.2(zod@4.6.7):
     dependencies:
       zod: 4.6.7
+
+  zod@4.3.6: {}
 
   zod@4.6.7: {}
 

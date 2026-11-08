@@ -1,6 +1,6 @@
 # 08: บันทึก HTTP แบบรับตรงเป็น Recording
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 **Spec:** [Separate CLI and Player packages and record HTTP traffic](../spec.md)
 
@@ -23,3 +23,7 @@
 - [ ] Ctrl+C หยุดรับงานใหม่ รองานค้าง แล้ว close Recorder ภายในงบรวม 10 วินาทีปรับได้; จัดการ repeated shutdown/races และ deadline expiry ไม่ค้าง idle sockets; abnormal failure/expiry exit ไม่สำเร็จ
 - [ ] พิสูจน์ actual installed CLI → real HTTP → valid JSONL → actual Player; ตรวจ output collision/existing-file safety, schema side effects, redaction/truncation, timeout, pending-write failure และ shutdown ด้วย deterministic isolated tests กับ smoke ที่จำเป็น
 - [ ] อัปเดต docs/help สำหรับ direct capture, output, privacy, limits และ stop; ไม่เพิ่ม UI ใหม่หรือ SDK core ซ้ำ
+
+## Answer
+
+Implemented on `integration-cli-recording` in `295625f`, with follow-up fixes in `bacc8b1`. An installed CLI accepted real HTTP with 204, wrote a redacted and truncated Recording, and opened it in the Player. Eight concurrent active uploads were exercised, not benchmarked.

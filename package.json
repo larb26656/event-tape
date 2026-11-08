@@ -7,8 +7,10 @@
     "node": ">=22"
   },
   "scripts": {
+    "dev": "pnpm dev:player",
     "dev:player": "pnpm --filter @event-tape/player dev",
-    "view:sample": "pnpm --filter @event-tape/player build && node apps/player/dist/cli.mjs view ./sample-recording.jsonl",
+    "dev:cli": "pnpm --filter @event-tape/cli... build && node packages/cli/dist/cli.mjs",
+    "view:sample": "pnpm --filter @event-tape/cli... build && node packages/cli/dist/cli.mjs view ./sample-recording.jsonl",
     "build": "turbo run build",
     "typecheck": "turbo run typecheck",
     "lint": "turbo run lint",

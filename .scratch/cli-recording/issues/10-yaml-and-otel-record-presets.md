@@ -1,6 +1,6 @@
 # 10: ใช้ YAML Record Preset และ builtin OTel
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 **Spec:** [Separate CLI and Player packages and record HTTP traffic](../spec.md)
 
@@ -19,3 +19,7 @@
 - [ ] Output naming/exclusive creation และ existing view workflows ไม่เปลี่ยน; CLI preset ยังคงใช้ได้เมื่อติดตั้งนอก workspace
 - [ ] พิสูจน์ installed CLI ทั้ง user YAML capture และ YAML proxy กับ builtin otel ผ่าน real loopback traffic/fixture collector endpoint แล้วเปิด Recording ใน Player จริง; test precedence/errors ผ่าน observable behaviour ไม่ใช้ mock forwarding echoes
 - [ ] อัปเดต usage/help ตัวอย่าง direct capture/proxy, builtin preset, user YAML, selector conflicts, precedence และ privacy/compatibility limits; ตรวจ relevant suite/typecheck/lint/build และ smoke จริงตาม spec
+
+## Answer
+
+Implemented on `integration-cli-recording` in `b7342e2`. An installed CLI handled YAML capture, YAML proxy and builtin OTel traffic against loopback; their Recordings were opened in the actual Player.

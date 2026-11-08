@@ -1,9 +1,9 @@
 # Event Tape Player
 
-Install the packed `@event-tape/player` package in a Node.js >=22.12.0 project. Its `event-tape` executable serves the included static Player assets locally; it does not require the Vite development server or a source checkout.
+Install `@event-tape/cli` in a Node.js >=22.12.0 project. Its `event-tape` executable serves the separate Player package's static assets locally; it does not require the Vite development server or a source checkout.
 
 ```sh
-npm install @event-tape/player
+npm install @event-tape/cli
 npx event-tape view ./recordings/session.jsonl
 ```
 
