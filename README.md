@@ -1,67 +1,63 @@
 # Event Tape
 
+Record application events and inspect them later on a timeline. Event Tape pairs a headless SDK for writing recordings with a local Viewer for exploring event sequences, timing, and payloads.
+
+![Event Tape Viewer showing the sample recording, timeline, and event JSON](docs/viewer-screenshot.png)
+
+## What you can do
+
+- Record events from your application's own listeners to a JSONL file.
+- Open recordings locally, search their events, and inspect their raw JSON.
+- Navigate the timeline, select a playback range, and control playback speed.
+
+Playback is **view-only**: it does not send events back to an application. Replay through an application or protocol adapter is not supported.
+
 ## Requirements
 
 - Node.js 22 or newer (Vite 8 requires Node.js 20.19+ or 22.12+)
 - pnpm 11.9.0 (Corepack can provide the pinned version)
 
-## Workspace commands
+## Quick start
+
+Clone this repository, install its dependencies, and open the included 40-event sample recording:
 
 ```sh
 pnpm install
-pnpm --filter @event-tape/viewer dev
-pnpm typecheck
-pnpm lint
-pnpm test
-pnpm build
-```
-
-## Opening the sample recording
-
-The repository includes `sample-recording.jsonl`, a 40-event demo recording. Run this root shortcut to build the Viewer and open the sample in your browser:
-
-```sh
 pnpm view:sample
 ```
 
-The Viewer runs locally; playback is for inspection and does not send events to an application. To open a different recording, use the Viewer CLI after building it:
+The shortcut builds the Viewer and opens the sample in your browser. The Viewer runs locally.
 
-```sh
-pnpm --filter @event-tape/viewer build
-node apps/viewer/dist/cli.mjs view ./path/to/recording.jsonl
-```
+In the Viewer, search filters the event list without changing playback or the inspected event. Select an event to pause playback and move the playhead to it. Focus an event row and use ↑ or ↓ to select the previous or next visible event; navigation stops at the ends of the list. Arrow keys in the search field remain available for editing. Drag on the timeline to select an inclusive playback range.
 
-In the Viewer, search filters the event list without changing playback or the inspected event. Focus an event row and use ↑ or ↓ to select the previous or next visible event; navigation stops at the ends of the list. Selecting a row pauses playback and moves the playhead to that event. Arrow keys in the search field remain available for editing.
+## Use Event Tape in your project
 
-## Using the SDK and Viewer in another project
+The packages are installed from this checkout; these commands do not publish them to a registry.
 
-Build both distributable packages from the repository root:
+### 1. Build and install
+
+From the repository root, build the SDK and Viewer:
 
 ```sh
 pnpm --filter @event-tape/sdk build
 pnpm --filter @event-tape/viewer build
 ```
 
-From the repository root, install the built SDK in your current project:
+From your application project, install the SDK using the path to this checkout:
 
 ```sh
-npm install ./packages/sdk
+npm install /path/to/event-tape/packages/sdk
 ```
 
-Install the Viewer CLI globally from this checkout:
+Install the Viewer CLI globally from the checkout:
 
 ```sh
-npm install --global ./apps/viewer
+npm install --global /path/to/event-tape/apps/viewer
 ```
 
+### 2. Record events
 
-The CLI is then available as `event-tape`:
-
-```sh
-event-tape view ./recordings/session.jsonl
-```
-
-Use the SDK from an application-owned listener. The SDK does not install listeners or interpret protocol messages; filter secrets before recording, and await `close()` before exiting:
+Connect the SDK to an application-owned listener. The SDK does not install listeners or interpret protocol messages. Filter secrets before recording, and await `close()` before exiting.
 
 ```js
 import { createRecorder } from '@event-tape/sdk'
@@ -84,20 +80,35 @@ try {
 }
 ```
 
-Open the resulting recording with the globally installed Viewer CLI:
+### 3. Open a recording
 
 ```sh
 event-tape view ./recordings/session.jsonl
 ```
 
-These checkout-based commands use locally built packages; they do not publish them to a registry.
+Alternatively, run the built CLI directly from the checkout:
 
-The Viewer opens only the Event Tape recording envelope format (version 1), parsed in a Web Worker. A complete final JSONL record is accepted whether or not it ends in a newline. If the last line is invalid JSON and has no terminating newline, the viewer keeps the complete preceding records and shows a recovery warning; if none precede it, the viewer shows an empty recording with the warning. This is a best-effort recovery of a likely crash-truncated tail, not proof that the recording is complete: events still buffered in the recorder may never have reached disk. Invalid JSON in a terminated/interior line, invalid envelopes, and unsupported versions reject the recording with the line number and cause; the viewer does not skip damaged records. Empty recordings have no events to inspect.
+```sh
+node apps/viewer/dist/cli.mjs view ./path/to/recording.jsonl
+```
 
-## Playback and Replay
+## Recording format and recovery
 
-Viewer Playback is view-only: it advances through recorded elapsed time, supports pause, speed changes, seeking, and event selection, and never emits events to another system. Replay would re-execute events through an application or protocol adapter; that functionality is not part of this Viewer.
+The Viewer opens Event Tape recording envelope format version 1 and parses it in a Web Worker. A complete final JSONL record is accepted with or without a terminating newline.
 
-## CLI initialization
+If the last line is invalid JSON and has no terminating newline, the Viewer keeps the complete preceding records and displays a recovery warning. If there are no preceding records, it shows an empty recording with the warning. This is best-effort recovery of a likely crash-truncated tail, not proof that the recording is complete: events still buffered in the recorder may never have reached disk.
 
-The monorepo was initialized with `pnpm create turbo@latest` (pnpm manager). The SDK was initialized with `pnpm create tsdown@latest packages/sdk --template minimal`. Viewer was initialized using the supported shadcn Vite template: `pnpm dlx shadcn@latest init --template vite --no-monorepo --cwd apps/viewer --name viewer --preset nova -y`. The private recording-format package was initialized with `pnpm init --bare --init-type module`. The CLI-created Vite/shadcn output and tsdown output are adapted to the workspace and pinned toolchain.
+Invalid JSON in a terminated or interior line, invalid envelopes, and unsupported versions reject the recording with a line number and cause; the Viewer does not skip damaged records. Empty recordings have no events to inspect.
+
+## Development
+
+Run these commands from the repository root:
+
+```sh
+pnpm install
+pnpm --filter @event-tape/viewer dev
+pnpm typecheck
+pnpm lint
+pnpm test
+pnpm build
+```
