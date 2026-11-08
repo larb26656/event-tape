@@ -1,6 +1,6 @@
 # Event Tape Viewer
 
-Install the packed `@event-tape/viewer` package in a Node.js 22+ project. Its `event-tape` executable serves the included static Viewer assets locally; it does not require the Vite development server or a source checkout.
+Install the packed `@event-tape/viewer` package in a Node.js >=22.12.0 project. Its `event-tape` executable serves the included static Viewer assets locally; it does not require the Vite development server or a source checkout.
 
 ```sh
 npm install @event-tape/viewer
@@ -8,6 +8,8 @@ npx event-tape view ./recordings/session.jsonl
 ```
 
 The CLI prints a loopback URL and opens it in the system browser. Use `npx event-tape view ./recordings/session.jsonl --no-browser` to suppress browser launch and copy the printed URL. The CLI serves the selected recording and packaged HTML, JS, CSS, fonts, and parsing Worker from the local machine. The Viewer loads files locally; it does not upload recording contents.
+
+The Viewer displays the supplied Recording's filename. Use the file picker to replace it at any time; CLI-loaded and locally selected Recordings use the same Worker parsing, warnings, and line-numbered errors. During development, the file picker remains available when no CLI Recording is supplied.
 
 The SDK's JSONL contract is versioned. Each event is one JSON object per line with a timestamp, increasing sequence number, elapsed milliseconds, source, optional direction, and JSON payload. Empty lines and malformed, truncated, unsupported, or schema-invalid records are shown as load errors rather than silently accepted. A partial final JSON fragment may be discarded with a warning. Empty recordings load with zero events. A zero-duration recording can be inspected event-by-event, but cannot be played or sought. Playback ends at the final event and never replays events into an application.
 

@@ -38,6 +38,9 @@ importers:
 
   apps/viewer:
     dependencies:
+      commander:
+        specifier: 15.1.0
+        version: 15.1.0
       react-resizable-panels:
         specifier: ^4.19.1
         version: 4.19.1(@types/react@19.2.14)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
@@ -1127,6 +1130,10 @@ packages:
     resolution: {integrity: sha512-wm10E6iuJ37rALOw3D+3cfaXXZSLNMh2uxpQn3dNICqfJM59yXqgbA9/9Iiz155j5kYNLdK6WreNdW3NQtx3OQ==}
     engines: {node: '>=22'}
     hasBin: true
+
+  commander@15.1.0:
+    resolution: {integrity: sha512-cgnQ88TRrWcC7pVq46RzJVRMktu3W2RcbnoidnfBsl1bmDCBwJS/udcIZpKoCrbAYYaCqsz1yZCVIgbIaU3ddQ==}
+    engines: {node: '>=22.12.0'}
 
   convert-source-map@2.0.0:
     resolution: {integrity: sha512-Kvp459HrV2FEJ1CAsi1Ku+MY3kasH19TFykTz2xWmMeq6bk2NU3XXvfJ+Q61m0xktWwt+1HSYf3JZsTms3aRJg==}
@@ -2807,6 +2814,8 @@ snapshots:
   clsx@2.1.1: {}
 
   cn@0.5.2: {}
+
+  commander@15.1.0: {}
 
   convert-source-map@2.0.0: {}
 
