@@ -23,7 +23,7 @@ When no recording is loaded, the Viewer shows an empty state with an option to o
 
 The Raw JSON inspector syntax-highlights keys and values while keeping the complete formatted JSON selectable and copyable.
 
-Drag across the Timeline overview to select an inclusive playback range. Alternatively, focus the Playback position control, seek to the start and press `I`, then seek to the end and press `O`. Selecting a range pauses Playback and moves the playhead to its start. The list shows only events within the range, and Playback stops at its end. A range containing no events shows no selection or JSON. Clear range restores the full recording; search can further filter the range.
+Drag across the Timeline overview to select an inclusive playback range. Alternatively, focus the Playback position control, seek to the start and press `I`, then seek to the end and press `O`. Selecting a range pauses Playback and moves the playhead to its start. The list shows only events within the range, and Playback stops at its end. A range containing no events shows no selection or JSON. Clear range beside the Timeline overview restores the full recording; search can further filter the range.
 
 Search events matches a case-insensitive substring anywhere in the complete event JSON, including field names and nested payloads. It filters only the list: the Timeline, Playback, and inspected event remain unchanged, even when the selected event is hidden. Clear the search to restore all events within the current range. Regular expressions, structured queries, and saved searches are not supported.
 

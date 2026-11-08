@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { Pause, Play, SkipBack, SkipForward } from 'lucide-react'
+import { Pause, Play, SkipBack, SkipForward, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select'
@@ -70,15 +70,20 @@ export function TimelinePanel({
       {!error && !loading && events.length === 0 && (
         <p className="text-muted-foreground">No events in this recording.</p>
       )}
-      <TimelineOverview
-        events={events}
-        durationMs={durationMs}
-        playheadMs={playheadMs}
-        range={range}
-        onSetRange={(start, end) => { setMark(null); onSetRange(start, end) }}
-        onSeek={onSeek}
-        onKeyboardSeek={() => positionControl.current?.focus()}
-      />
+      <div className="flex items-center gap-2">
+        <div className="min-w-0 flex-1">
+          <TimelineOverview
+            events={events}
+            durationMs={durationMs}
+            playheadMs={playheadMs}
+            range={range}
+            onSetRange={(start, end) => { setMark(null); onSetRange(start, end) }}
+            onSeek={onSeek}
+            onKeyboardSeek={() => positionControl.current?.focus()}
+          />
+        </div>
+        {range && <Button type="button" variant="ghost" size="sm" onClick={() => { setMark(null); onClearRange() }}><X />Clear range</Button>}
+      </div>
       <p className="hidden">Drag to select an inclusive playback range; click to seek.</p>
       <div className="grid grid-cols-[auto_minmax(80px,1fr)_auto_auto] items-center gap-4 max-[700px]:grid-cols-[1fr_auto] max-[700px]:gap-2">
         <div className="col-start-4 row-start-1 flex items-center justify-between gap-2 max-[700px]:col-span-full max-[700px]:col-start-1 max-[700px]:row-start-3">
@@ -122,7 +127,6 @@ export function TimelinePanel({
       </div>
       <p id="range-keyboard-help" className="sr-only">On the playback position, press I to mark a range start, then O to mark its end. Clear the range first to select outside it.</p>
       <p role="status" className="text-muted-foreground text-xs">{rangeStart !== null ? `Range start marked at ${(rangeStart / 1000).toFixed(2)} s. Move the playhead and press O.` : ''}</p>
-      {range && <Button type="button" variant="outline" onClick={() => { setMark(null); onClearRange() }}>Clear range</Button>}
     </div>
   )
 }
