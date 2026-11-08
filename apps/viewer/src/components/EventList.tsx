@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import type { RecordingEnvelope } from '@event-tape/recording-format'
 import { Input } from './ui/input'
-import { cn } from 'cn'
+import { EventCard } from './EventCard'
 
 const EVENT_ROW_HEIGHT = 104
 
@@ -84,15 +84,15 @@ export function EventList({ events, range, selected, playheadMs, loading, error,
                 transform: `translateY(${row.start}px)`,
               }}
             >
-              <button
+              <EventCard
+                item={item}
+                selected={selected === originalIndex}
                 ref={(button) => {
                   if (button && focusResult.current === originalIndex) {
                     focusResult.current = null
                     button.focus({ preventScroll: true })
                   }
                 }}
-                aria-pressed={selected === originalIndex}
-                className={cn('hover:bg-accent focus-visible:outline-ring h-full w-full cursor-pointer border-b p-3 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px]', selected === originalIndex && 'bg-accent')}
                 onClick={() => onSelect(originalIndex)}
                 onKeyDown={(event) => {
                   if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown') return
@@ -103,18 +103,7 @@ export function EventList({ events, range, selected, playheadMs, loading, error,
                   virtualizer.scrollToIndex(next, { align: 'auto' })
                   onSelect(results[next])
                 }}
-              >
-                <span className="text-muted-foreground font-mono text-xs">
-                  #{item.seq} · {item.elapsedMs.toFixed(2)} ms
-                </span>
-                <p className="mt-1 font-medium">
-                  {item.source}
-                  {item.direction ? ` · ${item.direction}` : ''}
-                </p>
-                <p className="text-muted-foreground truncate text-sm">
-                  {JSON.stringify(item.payload)}
-                </p>
-              </button>
+              />
             </li>
           )
         })}

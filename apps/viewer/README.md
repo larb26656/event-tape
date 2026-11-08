@@ -17,6 +17,8 @@ Play advances a clock by recorded `elapsedMs` (including quiet intervals), at 0.
 
 The Viewer shows the virtualized Recording events list on the left and the Raw JSON inspector in the center, with the player spanning the bottom. Drag the separator or focus it and use the arrow keys to resize the panes. On narrow screens the panes stack and the separator resizes them vertically. Select an event in the list to pause Playback, move to its recorded time, and inspect its complete envelope and payload. Use the player controls to play, pause, change speed, or seek. Keyboard activation of the Timeline overview moves focus to the Playback position control for seeking.
 
+The selected event uses the theme's muted surface. With an event focused, use the up and down arrow keys to select the previous or next visible result.
+
 When no recording is loaded, the Viewer shows an empty state with an option to open a local file. Recently opened files are kept only in memory for the current session and are not persisted across reloads.
 
 The Raw JSON inspector syntax-highlights keys and values while keeping the complete formatted JSON selectable and copyable.
