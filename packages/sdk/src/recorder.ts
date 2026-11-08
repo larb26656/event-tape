@@ -8,18 +8,27 @@ export interface RecorderInput {
   direction?: string
   payload: unknown
 }
-export interface RecorderOptions {
-  file: string
+interface RecorderBaseOptions {
   maxBufferedBytes?: number
   onError?: (error: Error) => void
 }
+export type RecorderOptions = RecorderBaseOptions & (
+  | { file: string; writer?: never }
+  | { writer: Writer; file?: never }
+)
 export interface Recorder {
   record(input: RecorderInput): void
   close(): Promise<void>
 }
 
-export function createRecorder({ file, maxBufferedBytes = 16 * 1024 * 1024, onError }: RecorderOptions): Recorder {
-  const writer: Writer = createFileWriter({ file })
+export function createRecorder(options: RecorderOptions): Recorder {
+  const hasFile = 'file' in options && options.file !== undefined
+  const hasWriter = 'writer' in options && options.writer !== undefined
+  if (hasFile === hasWriter) throw new TypeError('provide exactly one of file or writer')
+  const { maxBufferedBytes = 16 * 1024 * 1024, onError } = options
+  const writer: Writer = hasWriter
+    ? options.writer
+    : createFileWriter({ file: options.file })
   let seq = 0
   let startedAt: number | undefined
   let queue: Promise<void> = Promise.resolve()
