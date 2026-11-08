@@ -1,5 +1,5 @@
 {
-  "name": "@event-tape/viewer",
+  "name": "@event-tape/player",
   "private": false,
   "version": "0.0.1",
   "type": "module",

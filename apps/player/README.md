@@ -1,15 +1,15 @@
-# Event Tape Viewer
+# Event Tape Player
 
-Install the packed `@event-tape/viewer` package in a Node.js >=22.12.0 project. Its `event-tape` executable serves the included static Viewer assets locally; it does not require the Vite development server or a source checkout.
+Install the packed `@event-tape/player` package in a Node.js >=22.12.0 project. Its `event-tape` executable serves the included static Player assets locally; it does not require the Vite development server or a source checkout.
 
 ```sh
-npm install @event-tape/viewer
+npm install @event-tape/player
 npx event-tape view ./recordings/session.jsonl
 ```
 
-The CLI prints a loopback URL and opens it in the system browser. Use `npx event-tape view ./recordings/session.jsonl --no-browser` to suppress browser launch and copy the printed URL. The CLI serves the selected recording and packaged HTML, JS, CSS, fonts, and parsing Worker from the local machine. The Viewer loads files locally; it does not upload recording contents.
+The CLI prints a loopback URL and opens it in the system browser. Use `npx event-tape view ./recordings/session.jsonl --no-browser` to suppress browser launch and copy the printed URL. The CLI serves the selected recording and packaged HTML, JS, CSS, fonts, and parsing Worker from the local machine. The Player loads files locally; it does not upload recording contents.
 
-The Viewer displays the supplied Recording's filename. Use the file picker to replace it at any time; CLI-loaded and locally selected Recordings use the same Worker parsing, warnings, and line-numbered errors. During development, the file picker remains available when no CLI Recording is supplied.
+The Player displays the supplied Recording's filename. Use the file picker to replace it at any time; CLI-loaded and locally selected Recordings use the same Worker parsing, warnings, and line-numbered errors. During development, the file picker remains available when no CLI Recording is supplied.
 
 The SDK's JSONL contract is versioned. Each event is one JSON object per line with a timestamp, increasing sequence number, elapsed milliseconds, source, optional direction, and JSON payload. Empty lines and malformed, truncated, unsupported, or schema-invalid records are shown as load errors rather than silently accepted. A partial final JSON fragment may be discarded with a warning. Empty recordings load with zero events. A zero-duration recording can be inspected event-by-event, but cannot be played or sought. Playback ends at the final event and never replays events into an application.
 
@@ -17,11 +17,13 @@ The SDK's JSONL contract is versioned. Each event is one JSON object per line wi
 
 Play advances a clock by recorded `elapsedMs` (including quiet intervals), at 0.25×, 0.5×, 1×, 2×, or 4×. During automatic Playback, the selected list event and displayed JSON follow the latest event at or before the playhead; equal timestamps prefer the highest sequence number. Clicking the Timeline or seeking with the position control pauses Playback and inspects the nearest event while retaining the requested playhead time. Equidistant events and duplicate timestamps prefer the highest sequence number. Selecting a list event instead pauses and inspects that exact event at its recorded time, including individually selectable events with duplicate timestamps. Raw JSON displays the selected event envelope and payload. Seeking supports fractional millisecond positions.
 
-The Viewer shows the virtualized Recording events list on the left and the Raw JSON inspector in the center, with the player spanning the bottom. Drag the separator or focus it and use the arrow keys to resize the panes. On narrow screens the panes stack and the separator resizes them vertically. Select an event in the list to pause Playback, move to its recorded time, and inspect its complete envelope and payload. Use the player controls to play, pause, change speed, or seek. Keyboard activation of the Timeline overview moves focus to the Playback position control for seeking.
+The Player shows the virtualized Recording events list on the left and the Raw JSON inspector in the center, with the playback controls spanning the bottom. Drag the separator or focus it and use the arrow keys to resize the panes. On narrow screens the panes stack and the separator resizes them vertically. Select an event in the list to pause Playback, move to its recorded time, and inspect its complete envelope and payload. Use the playback controls to play, pause, change speed, or seek. Keyboard activation of the Timeline overview moves focus to the Playback position control for seeking.
 
 The selected event uses the theme's muted surface. With an event focused, use the up and down arrow keys to select the previous or next visible result.
 
-When no recording is loaded, the Viewer shows an empty state with an option to open a local file. Recently opened files are kept only in memory for the current session and are not persisted across reloads.
+When no recording is loaded, the Player shows an empty state with an option to open a local file. Recently opened files are kept only in memory for the current session and are not persisted across reloads.
+
+Use the header theme button to switch between light and dark. The Player follows the system theme until a choice is made, then remembers the choice in browser local storage and synchronizes it across tabs.
 
 The Raw JSON inspector syntax-highlights keys and values while keeping the complete formatted JSON selectable and copyable.
 
@@ -29,19 +31,19 @@ Drag across the Timeline overview to select an inclusive playback range. Alterna
 
 Search events matches a case-insensitive substring anywhere in the complete event JSON, including field names and nested payloads. It filters only the list: the Timeline, Playback, and inspected event remain unchanged, even when the selected event is hidden. Clear the search to restore all events within the current range. Regular expressions, structured queries, and saved searches are not supported.
 
-## Viewer UI development
+## Player UI development
 
-The Viewer uses Tailwind and shadcn's Base UI Nova components. Add shadcn components with `pnpm dlx shadcn@latest add <component>` from the Viewer directory; do not hand-write replacements. Keep theme and syntax styles in the shared stylesheet and runtime-calculated styles where needed for virtualized or canvas-based views.
+The Player uses Tailwind and shadcn's Base UI Nova components. Add shadcn components with `pnpm dlx shadcn@latest add <component>` from the Player directory; do not hand-write replacements. Keep theme and syntax styles in the shared stylesheet and runtime-calculated styles where needed for virtualized or canvas-based views.
 
-Playback state and actions live in the global Zustand store in `src/stores/playback.ts`. Viewer feature components subscribe to the fields they use. Opening a Recording resets its Playback position, selection, and range while retaining the selected speed.
+Playback state and actions live in the global Zustand store in `src/stores/playback.ts`. Player feature components subscribe to the fields they use. Opening a Recording resets its Playback position, selection, and range while retaining the selected speed.
 
 ## Target-size and external-package smoke
 
-A packed-artifact smoke was run from a Vite project initialized by the Vite CLI outside the monorepo. The project installed the SDK and Viewer tarballs locally; its ESM listener recorded request/response/worker events without ACP, awaited `close()`, then the installed `event-tape` CLI served the recording in Chrome 150 on macOS at 1365×768. The Viewer loaded the packaged HTML, scripts, stylesheet, font, and Worker from loopback; browser requests had no non-loopback destinations.
+A packed-artifact smoke was run from a Vite project initialized by the Vite CLI outside the monorepo. The project installed the SDK and Player tarballs locally; its ESM listener recorded request/response/worker events without ACP, awaited `close()`, then the installed `event-tape` CLI served the recording in Chrome 150 on macOS at 1365×768. The Player loaded the packaged HTML, scripts, stylesheet, font, and Worker from loopback; browser requests had no non-loopback destinations.
 
 - Target fixture: 100,000 valid events, 13,466,684 bytes (13.47 MB decimal; below both 50 MB and 100,000-event limits).
 - Observed all events loaded; the virtualized list contained 13 rows at the tested viewport. Scrolling to and selecting #100000 showed its matching payload. Seeking to the tied 99,998 ms timestamp displayed the higher sequence #100000.
-- Playback speed 2× selection and 4× playback reached the final 0.24 s on the three-event consumer recording. Replacing the loaded file reset the Viewer to 0.00 / 0.24 s and showed the new event data.
+- Playback speed 2× selection and 4× playback reached the final 0.24 s on the three-event consumer recording. Replacing the loaded file reset the Player to 0.00 / 0.24 s and showed the new event data.
 - Empty recording showed “No events in this recording.” A valid zero-duration one-event file remained inspectable with Play and seek disabled. An invalid sequence number showed `Line 1: invalid seq` as a load error.
 - CLI requests loaded the packaged Worker and other static assets without a Vite server or source checkout. No requests went to non-loopback origins.
 

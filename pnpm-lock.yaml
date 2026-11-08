@@ -36,7 +36,7 @@ importers:
         specifier: 8.56.0
         version: 8.56.0(eslint@10.0.1(jiti@2.7.0))(typescript@6.0.2)
 
-  apps/viewer:
+  apps/player:
     dependencies:
       commander:
         specifier: 15.1.0

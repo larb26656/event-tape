@@ -2,7 +2,7 @@
 
 ## Scope and boundaries
 
-This package records application-supplied events to a new local JSONL file. The caller owns listeners, protocol interpretation, and filtering sensitive data. Keep those responsibilities out of the Recorder; the Viewer is a separate application.
+This package records application-supplied events to a new local JSONL file. The caller owns listeners, protocol interpretation, and filtering sensitive data. Keep those responsibilities out of the Recorder; the Player is a separate application.
 
 Paths below are relative to this directory; commands run from the repository root. Root agent instructions still apply.
 
@@ -18,7 +18,7 @@ Dependency versions, the Node.js requirement, exports, and scripts are authorita
 ## Start here
 
 - Read `README.md` for the public lifecycle and failure contract, `src/index.ts` for public exports, `src/recorder.ts` for Recorder behavior, and the adjacent Recorder/File Writer tests before changing recording or shutdown.
-- For envelope changes, read `../recording-format/src/index.ts` and check the Viewer consumer in `../../apps/viewer/src/recording.worker.ts`.
+- For envelope changes, read `../recording-format/src/index.ts` and check the Player consumer in `../../apps/player/src/recording.worker.ts`.
 - For publishing or exports, read `package.json` and `tsdown.config.ts`, then verify the packed consumer path described below.
 - Test responsibilities follow behavior: `src/recorder.test.ts` covers Recorder behavior using controlled/array-backed Writers; `src/integration.test.ts` covers the public file configuration through a real temporary file and shared parser; `src/file-writer.test.ts` covers the File Writer and its filesystem/write lifecycle independently. Keep each behavior in its owning suite and avoid duplicate real-file Recorder cases.
 

@@ -4,9 +4,9 @@
   <img src="docs/event-tape-logo.png" alt="Event Tape pixel art cassette logo" width="400">
 </p>
 
-Record application events and inspect them later on a timeline. Event Tape pairs a headless SDK for writing recordings with a local Viewer for exploring event sequences, timing, and payloads.
+Record application events and inspect them later on a timeline. Event Tape pairs a headless SDK for writing recordings with a local Player for exploring event sequences, timing, and payloads.
 
-![Event Tape Viewer showing the sample recording, timeline, and event JSON](docs/viewer-screenshot.png)
+![Event Tape Player showing the sample recording, timeline, and event JSON](docs/viewer-screenshot.png)
 
 ## What you can do
 
@@ -18,7 +18,7 @@ Playback is **view-only**: it does not send events back to an application. Repla
 
 ## Requirements
 
-- Node.js >=22.12.0 for the Viewer CLI (the Recorder SDK runtime requirement remains unchanged)
+- Node.js >=22.12.0 for the Player CLI (the Recorder SDK runtime requirement remains unchanged)
 - pnpm 11.9.0 (Corepack can provide the pinned version)
 
 ## Quick start
@@ -30,11 +30,11 @@ pnpm install
 pnpm view:sample
 ```
 
-The shortcut builds the Viewer and opens the sample in your browser. The Viewer runs locally.
+The shortcut builds the Player and opens the sample in your browser. The Player runs locally.
 
-In the Viewer, search filters the event list without changing playback or the inspected event. Select an event to pause playback and move the playhead to it. Focus an event row and use ↑ or ↓ to select the previous or next visible event; navigation stops at the ends of the list. Arrow keys in the search field remain available for editing. Drag on the timeline to select an inclusive playback range.
+In the Player, search filters the event list without changing playback or the inspected event. Select an event to pause playback and move the playhead to it. Focus an event row and use ↑ or ↓ to select the previous or next visible event; navigation stops at the ends of the list. Arrow keys in the search field remain available for editing. Drag on the timeline to select an inclusive playback range.
 
-The Viewer keeps file controls in a compact header, with independently scrolling event and JSON panes above a full-width player. Drag the divider or use its arrow keys to resize the panes; on narrow screens the panes stack.
+The Player keeps file controls in a compact header, with independently scrolling event and JSON panes above a full-width playback controls. Drag the divider or use its arrow keys to resize the panes; on narrow screens the panes stack.
 
 ## Use Event Tape in your project
 
@@ -42,11 +42,11 @@ The packages are installed from this checkout; these commands do not publish the
 
 ### 1. Build and install
 
-From the repository root, build the SDK and Viewer:
+From the repository root, build the SDK and Player:
 
 ```sh
 pnpm --filter @event-tape/sdk build
-pnpm --filter @event-tape/viewer build
+pnpm --filter @event-tape/player build
 ```
 
 From your application project, install the SDK using the path to this checkout:
@@ -55,10 +55,10 @@ From your application project, install the SDK using the path to this checkout:
 npm install /path/to/event-tape/packages/sdk
 ```
 
-Install the Viewer CLI globally from the checkout:
+Install the Player CLI globally from the checkout:
 
 ```sh
-npm install --global /path/to/event-tape/apps/viewer
+npm install --global /path/to/event-tape/apps/player
 ```
 
 ### 2. Record events
@@ -95,16 +95,16 @@ event-tape view ./recordings/session.jsonl
 Alternatively, run the built CLI directly from the checkout:
 
 ```sh
-node apps/viewer/dist/cli.mjs view ./path/to/recording.jsonl
+node apps/player/dist/cli.mjs view ./path/to/recording.jsonl
 ```
 
 ## Recording format and recovery
 
-The Viewer opens Event Tape recording envelope format version 1 and parses it in a Web Worker. A complete final JSONL record is accepted with or without a terminating newline.
+The Player opens Event Tape recording envelope format version 1 and parses it in a Web Worker. A complete final JSONL record is accepted with or without a terminating newline.
 
-If the last line is invalid JSON and has no terminating newline, the Viewer keeps the complete preceding records and displays a recovery warning. If there are no preceding records, it shows an empty recording with the warning. This is best-effort recovery of a likely crash-truncated tail, not proof that the recording is complete: events still buffered in the recorder may never have reached disk.
+If the last line is invalid JSON and has no terminating newline, the Player keeps the complete preceding records and displays a recovery warning. If there are no preceding records, it shows an empty recording with the warning. This is best-effort recovery of a likely crash-truncated tail, not proof that the recording is complete: events still buffered in the recorder may never have reached disk.
 
-Invalid JSON in a terminated or interior line, invalid envelopes, and unsupported versions reject the recording with a line number and cause; the Viewer does not skip damaged records. Empty recordings have no events to inspect.
+Invalid JSON in a terminated or interior line, invalid envelopes, and unsupported versions reject the recording with a line number and cause; the Player does not skip damaged records. Empty recordings have no events to inspect.
 
 ## Development
 
@@ -112,7 +112,7 @@ Run these commands from the repository root:
 
 ```sh
 pnpm install
-pnpm --filter @event-tape/viewer dev
+pnpm --filter @event-tape/player dev
 pnpm typecheck
 pnpm lint
 pnpm test

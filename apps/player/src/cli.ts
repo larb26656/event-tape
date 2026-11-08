@@ -16,7 +16,7 @@ async function launch(recording: string | undefined, browser: boolean, command: 
   const address = server.address()
   if (address && typeof address !== 'string') {
     const url = `http://127.0.0.1:${address.port}`
-    console.log(`Event Tape Viewer: ${url}`)
+    console.log(`Event Tape Player: ${url}`)
     if (browser) {
       const opener = process.platform === 'darwin' ? 'open' : process.platform === 'win32' ? 'cmd' : 'xdg-open'
       const openerArgs = process.platform === 'win32' ? ['/c', 'start', '', url] : [url]
@@ -36,12 +36,12 @@ function configureRoot(command: Command) {
 
 const program = new Command()
   .name('event-tape')
-  .description('Open a recording in the Event Tape Viewer')
+  .description('Open a recording in the Event Tape Player')
   .version(JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8')).version)
 configureRoot(program)
 program
   .command('view')
-  .description('Open a recording in the Event Tape Viewer')
+  .description('Open a recording in the Event Tape Player')
   .argument('<recording.jsonl>', 'recording file to open')
   .option('--no-browser', 'print the local URL without opening a browser')
   .action(async (recording, options, command) => {

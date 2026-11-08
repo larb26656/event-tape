@@ -1,5 +1,6 @@
-import { FileJson, FolderOpen, History } from 'lucide-react'
+import { FileJson, FolderOpen, History, Moon, Sun } from 'lucide-react'
 import { Button } from './ui/button'
+import { useThemeStore } from '../stores/theme'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,19 +9,20 @@ import {
   DropdownMenuTrigger,
 } from './ui/dropdown-menu'
 
-type ViewerHeaderProps = {
+type PlayerHeaderProps = {
   currentName: string
   recent: File[]
   onOpen: () => void
   onRecent: (file: File) => void
 }
 
-export function ViewerHeader({
+export function PlayerHeader({
   currentName,
   recent,
   onOpen,
   onRecent,
-}: ViewerHeaderProps) {
+}: PlayerHeaderProps) {
+  const toggleTheme = useThemeStore((state) => state.toggleTheme)
   return (
     <>
       <header className="col-start-1 row-start-1 flex items-center gap-4 border-b border-border bg-card px-4 text-card-foreground max-[700px]:gap-2 max-[700px]:px-2.5">
@@ -35,8 +37,12 @@ export function ViewerHeader({
           <FolderOpen data-icon="inline-start" aria-hidden="true" />
           <span className="max-[700px]:sr-only">Open file</span>
         </Button>
+        <Button variant="ghost" size="icon" className="cursor-pointer" type="button" onClick={toggleTheme} aria-label="Toggle dark mode">
+          <Moon className="dark:hidden" aria-hidden="true" />
+          <Sun className="hidden dark:block" aria-hidden="true" />
+        </Button>
       </header>
-      <div className="pointer-events-none z-1 col-start-1 row-start-1 mx-0 mr-[135px] ml-[210px] flex min-w-0 items-center gap-4 max-[700px]:mr-[50px] max-[700px]:ml-[52px] max-[700px]:gap-2">
+      <div className="pointer-events-none z-1 col-start-1 row-start-1 mx-0 mr-[185px] ml-[210px] flex min-w-0 items-center gap-4 max-[700px]:mr-[100px] max-[700px]:ml-[52px] max-[700px]:gap-2">
         <div className="pointer-events-auto flex min-w-0 flex-1 items-center gap-2 text-xs font-semibold max-[700px]:text-[11px]">
           <FileJson size={15} className="shrink-0 text-muted-foreground" aria-hidden="true" />
           <span className="truncate" title={currentName}>{currentName}</span>

@@ -1,4 +1,4 @@
-# Viewer agent guide
+# Player agent guide
 
 ## Scope and boundaries
 
@@ -37,12 +37,12 @@ Dependency versions and scripts are authoritative in `package.json`; the reposit
 
 ## UI conventions
 
-- For UI work, read **Viewer UI development** in `README.md`; use the existing shadcn Base UI Nova primitives in `src/components/ui/`. Add missing primitives through the documented shadcn workflow rather than creating a competing component system.
+- For UI work, read **Player UI development** in `README.md`; use the existing shadcn Base UI Nova primitives in `src/components/ui/`. Add missing primitives through the documented shadcn workflow rather than creating a competing component system.
 - Use semantic theme utilities and keep theme/syntax styling in `src/index.css`. Inline styles are appropriate for runtime geometry such as virtual row offsets.
 
 ## Verify the changed path
 
-- Run `pnpm --filter @event-tape/viewer test` for state changes and `pnpm --filter @event-tape/viewer typecheck` for TypeScript changes; lint/build scripts live in `package.json`.
-- For UI changes, run `pnpm --filter @event-tape/viewer dev`, open its printed URL, and load `sample-recording.jsonl` from the repository root through the file picker. Check the actual changed interaction at wide and narrow widths, including keyboard use; store tests do not prove rendering or focus behavior.
-- For CLI, Worker, or build changes, run `pnpm --filter @event-tape/viewer build`, then `node apps/viewer/dist/cli.mjs view ./sample-recording.jsonl --no-browser`. Open the printed URL and verify the Recording and packaged Worker/assets load without the dev server. Stop the CLI after the smoke.
+- Run `pnpm --filter @event-tape/player test` for state changes and `pnpm --filter @event-tape/player typecheck` for TypeScript changes; lint/build scripts live in `package.json`.
+- For UI changes, run `pnpm --filter @event-tape/player dev`, open its printed URL, and load `sample-recording.jsonl` from the repository root through the file picker. Check the actual changed interaction at wide and narrow widths, including keyboard use; store tests do not prove rendering or focus behavior.
+- For CLI, Worker, or build changes, run `pnpm --filter @event-tape/player build`, then `node apps/player/dist/cli.mjs view ./sample-recording.jsonl --no-browser`. Open the printed URL and verify the Recording and packaged Worker/assets load without the dev server. Stop the CLI after the smoke.
 - Changes to distribution must also be checked from a packed install outside the workspace; a successful Vite dev session does not prove the shipped package works. Use **Target-size and external-package smoke** in `README.md` for the existing acceptance scenarios, and update that README when user-visible behavior changes.

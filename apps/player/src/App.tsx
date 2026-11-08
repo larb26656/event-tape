@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { EventDetailsPanel } from './components/EventDetailsPanel'
 import { EmptyRecording } from './components/EmptyRecording'
 import { EventList } from './components/EventList'
-import { ViewerHeader } from './components/ViewerHeader'
+import { PlayerHeader } from './components/PlayerHeader'
 import { TimelinePanel } from './components/TimelinePanel'
 import { usePlaybackStore as playback } from './stores/playback'
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from './components/ui/resizable'
@@ -91,7 +91,7 @@ export default function App() {
 
   return (
     <main className="grid h-dvh min-h-0 grid-rows-[48px_minmax(0,1fr)] overflow-hidden bg-background text-foreground">
-      <ViewerHeader currentName={currentName} recent={recent} onOpen={openFile} onRecent={chooseFile} />
+      <PlayerHeader currentName={currentName} recent={recent} onOpen={openFile} onRecent={chooseFile} />
       <input id="recording-file" className="hidden" type="file" accept=".jsonl,application/x-ndjson" onChange={(change) => {
         chooseFile(change.target.files?.[0])
         change.target.value = ''
