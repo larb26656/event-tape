@@ -7,13 +7,9 @@ import { ViewerHeader } from './components/ViewerHeader'
 import { TimelinePanel } from './components/TimelinePanel'
 import { createPlaybackStore } from './playback'
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from './components/ui/resizable'
-import type { RecordingEnvelope } from '@event-tape/recording-format'
+import { createRecordingLoader } from './recording-loading'
+import type { RecordingLoader } from './recording-loading'
 
-type WorkerResult = {
-  events?: RecordingEnvelope[]
-  warning?: string
-  error?: string
-}
 
 export default function App() {
   const [narrow, setNarrow] = useState(() => window.matchMedia('(max-width: 700px)').matches)
@@ -38,7 +34,7 @@ export default function App() {
   const [error, setError] = useState('')
   const [warning, setWarning] = useState('')
   const [loading, setLoading] = useState(true)
-  const workerRef = useRef<Worker | null>(null)
+  const loaderRef = useRef<RecordingLoader | null>(null)
   const [currentName, setCurrentName] = useState('No file open')
   const [hasRecording, setHasRecording] = useState(false)
   const [recent, setRecent] = useState<File[]>([])
@@ -57,100 +53,43 @@ export default function App() {
   }, [playback, playing])
 
   useEffect(() => {
-    let recordingName = 'recording.jsonl'
-    let initialFile: File | undefined
-    const worker = new Worker(
-      new URL('./recording.worker.ts', import.meta.url),
-      { type: 'module' },
-    )
-    workerRef.current = worker
-    worker.onmessage = (message: MessageEvent<WorkerResult>) => {
-      if (workerRef.current !== worker) return
-      workerRef.current = null
-      if (message.data.error) {
-        setError(message.data.error)
-        playback.getState().setEvents([])
+    const loader = createRecordingLoader((update) => {
+      if (update.type === 'loading') {
+        setError('')
         setWarning('')
-      } else {
-        playback.getState().setEvents(message.data.events ?? [])
-        setHasRecording(true)
-        setCurrentName(recordingName)
-        if (initialFile) setRecent((previous) => [initialFile!, ...previous])
-        setWarning(message.data.warning ?? '')
-      }
-      setLoading(false)
-      worker.terminate()
-    }
-    Promise.all([
-      fetch('/recording.jsonl').then((response) => {
-        if (!response.ok) throw new Error('Unable to load recording')
-        if (import.meta.env.DEV && response.headers.get('content-type')?.includes('text/html')) return null
-        return response.text()
-      }),
-      fetch('/recording-metadata.json').then(async (response) => {
-        if (!response.ok) return null
-        return response.json() as Promise<{ name?: unknown }>
-      }).catch(() => null),
-    ])
-      .then(([text, metadata]) => {
-        if (text === null) {
-          if (workerRef.current === worker) {
-            workerRef.current = null
-            setLoading(false)
-            worker.terminate()
-          }
-          return
-        }
-        if (typeof metadata?.name === 'string') recordingName = metadata.name
-        initialFile = new File([text], recordingName, { type: 'application/x-ndjson' })
-        if (workerRef.current === worker) worker.postMessage({ text })
-      })
-      .catch((reason: unknown) => {
-        if (workerRef.current !== worker) return
-        workerRef.current = null
-        if (!import.meta.env.DEV) setError(String(reason))
+        setLoading(true)
+        setHasRecording(false)
+        setCurrentName('No file open')
+        playback.getState().setEvents([])
+      } else if (update.type === 'empty') {
         setLoading(false)
-        worker.terminate()
-      })
+      } else if (update.type === 'error') {
+        setError(update.error)
+        setWarning('')
+        setLoading(false)
+        playback.getState().setEvents([])
+      } else {
+        playback.getState().setEvents(update.events)
+        setHasRecording(true)
+        setCurrentName(update.name)
+        setRecent((previous) => [
+          update.file,
+          ...previous.filter((item) => !(item.name === update.file.name && item.size === update.file.size && item.lastModified === update.file.lastModified)),
+        ])
+        setWarning(update.warning)
+        setLoading(false)
+      }
+    })
+    loaderRef.current = loader
+    void loader.loadInitial(import.meta.env.DEV)
     return () => {
-      if (workerRef.current === worker) workerRef.current = null
-      worker.terminate()
+      loader.dispose()
+      if (loaderRef.current === loader) loaderRef.current = null
     }
   }, [playback])
 
   const chooseFile = (file?: File) => {
-    if (!file) return
-    workerRef.current?.terminate()
-    workerRef.current = null
-    setError('')
-    setWarning('')
-    setLoading(true)
-    setHasRecording(false)
-    setCurrentName('No file open')
-    playback.getState().setEvents([])
-    const worker = new Worker(
-      new URL('./recording.worker.ts', import.meta.url),
-      { type: 'module' },
-    )
-    workerRef.current = worker
-    worker.onmessage = (message: MessageEvent<WorkerResult>) => {
-      if (workerRef.current !== worker) return
-      workerRef.current = null
-      if (message.data.error) {
-        setError(message.data.error)
-        playback.getState().setEvents([])
-        setWarning('')
-      } else {
-        playback.getState().setEvents(message.data.events ?? [])
-        setHasRecording(true)
-        setCurrentName(file.name)
-        setRecent((previous) => [file, ...previous.filter((item) => !(item.name === file.name && item.size === file.size && item.lastModified === file.lastModified))])
-        setWarning(message.data.warning ?? '')
-      }
-      setLoading(false)
-      worker.terminate()
-    }
-    worker.postMessage(file)
+    if (file) loaderRef.current?.loadFile(file)
   }
   const event = playback.getState().currentEvent()
 
