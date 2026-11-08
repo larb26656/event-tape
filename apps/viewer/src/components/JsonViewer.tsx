@@ -6,7 +6,7 @@ export function JsonViewer({ value }: { value: unknown }) {
   return (
     <Highlight code={json} language="json" theme={{ plain: {}, styles: [] }}>
       {({ tokens, getTokenProps }) => (
-        <pre className="json-highlight bg-muted max-h-[65vh] overflow-auto rounded-lg p-4 text-xs leading-relaxed">
+        <pre className="json-highlight bg-muted min-h-0 flex-1 overflow-auto p-4 text-xs leading-relaxed">
           {tokens.map((line, lineIndex) => (
             <span key={lineIndex}>
               {line.map((token, tokenIndex) => (

@@ -1,4 +1,12 @@
 import { FileJson, FolderOpen, History } from 'lucide-react'
+import { Button } from './ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from './ui/dropdown-menu'
 
 type ViewerHeaderProps = {
   currentName: string
@@ -15,60 +23,52 @@ export function ViewerHeader({
 }: ViewerHeaderProps) {
   return (
     <>
-      <header className="viewer-top">
-        <div className="viewer-brand">
-          <span className="viewer-mark">
-            <img src="/event-tape-icon.png" alt="" />
+      <header className="col-start-1 row-start-1 flex items-center gap-4 border-b border-border bg-card px-4 text-card-foreground max-[700px]:gap-2 max-[700px]:px-2.5">
+        <div className="flex items-center gap-2 whitespace-nowrap font-[650] tracking-[-0.02em]">
+          <span className="grid size-7 place-items-center">
+            <img className="size-full object-contain" src="/event-tape-icon.png" alt="" />
           </span>
-          <span>Event Tape</span>
+          <span className="max-[700px]:hidden">Event Tape</span>
         </div>
-        <span className="viewer-context">Recording workspace</span>
-        <button className="viewer-open" type="button" onClick={onOpen}>
-          <FolderOpen size={15} aria-hidden="true" />
-          <span className="viewer-open-label">Open file</span>
-        </button>
+        <span className="hidden">Recording workspace</span>
+        <Button variant="secondary" size="sm" className="ml-auto cursor-pointer max-[700px]:px-2" type="button" onClick={onOpen}>
+          <FolderOpen data-icon="inline-start" aria-hidden="true" />
+          <span className="max-[700px]:sr-only">Open file</span>
+        </Button>
       </header>
-      <div className="viewer-file-bar">
-        <div className="viewer-file-label">
-          <FileJson size={15} aria-hidden="true" />
-          <span title={currentName}>{currentName}</span>
+      <div className="pointer-events-none z-1 col-start-1 row-start-1 mx-0 mr-[135px] ml-[210px] flex min-w-0 items-center gap-4 max-[700px]:mr-[50px] max-[700px]:ml-[52px] max-[700px]:gap-2">
+        <div className="pointer-events-auto flex min-w-0 flex-1 items-center gap-2 text-xs font-semibold max-[700px]:text-[11px]">
+          <FileJson size={15} className="shrink-0 text-muted-foreground" aria-hidden="true" />
+          <span className="truncate" title={currentName}>{currentName}</span>
         </div>
-        <details className="viewer-recent">
-          <summary>
-            <History size={15} aria-hidden="true" />
-            <span className="viewer-recent-label">Recent files</span>
-            <span>{recent.length}</span>
-          </summary>
-          <div className="viewer-recent-list">
-            {recent.length ? (
-              recent.map((file, index) => (
-                <button
-                  type="button"
-                  className="viewer-recent-file"
-                  key={`${file.name}-${index}`}
-                  onClick={(event) => {
-                    event.currentTarget
-                      .closest('details')
-                      ?.removeAttribute('open')
-                    onRecent(file)
-                  }}
-                >
-                  <FileJson size={16} aria-hidden="true" />
-                  <span>{file.name}</span>
-                </button>
-              ))
-            ) : (
-              <p>Files you open in this session will appear here.</p>
-            )}
-            <button
-              type="button"
-              className="viewer-recent-open"
-              onClick={onOpen}
-            >
-              Open a recording
-            </button>
-          </div>
-        </details>
+        <DropdownMenu>
+          <DropdownMenuTrigger render={<Button variant="ghost" size="sm" className="pointer-events-auto cursor-pointer gap-[7px] max-[700px]:gap-[3px]" />}>
+            <History data-icon="inline-start" aria-hidden="true" />
+            <span className="max-[700px]:sr-only">Recent files</span>
+            <span className="rounded bg-secondary px-1.5 py-0.5 text-secondary-foreground">{recent.length}</span>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-[260px] max-w-[calc(100vw-20px)]">
+            <DropdownMenuGroup>
+              {recent.length ? (
+                recent.map((file, index) => (
+                  <DropdownMenuItem
+                    className="min-w-0 cursor-pointer"
+                    key={`${file.name}-${index}`}
+                    onClick={() => onRecent(file)}
+                  >
+                    <FileJson aria-hidden="true" />
+                    <span className="truncate">{file.name}</span>
+                  </DropdownMenuItem>
+                ))
+              ) : (
+                <p className="mx-2 my-1 text-xs leading-[1.55] text-muted-foreground">Files you open in this session will appear here.</p>
+              )}
+              <DropdownMenuItem className="cursor-pointer font-semibold" onClick={onOpen}>
+                Open a recording
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </>
   )

@@ -25,6 +25,10 @@ Drag across the Timeline overview to select an inclusive playback range. Alterna
 
 Search events matches a case-insensitive substring anywhere in the complete event JSON, including field names and nested payloads. It filters only the list: the Timeline, Playback, and inspected event remain unchanged, even when the selected event is hidden. Clear the search to restore all events within the current range. Regular expressions, structured queries, and saved searches are not supported.
 
+## Viewer UI development
+
+The Viewer uses Tailwind and shadcn's Base UI Nova components. Add shadcn components with `pnpm dlx shadcn@latest add <component>` from the Viewer directory; do not hand-write replacements. Keep theme and syntax styles in the shared stylesheet and runtime-calculated styles where needed for virtualized or canvas-based views.
+
 ## Target-size and external-package smoke
 
 A packed-artifact smoke was run from a Vite project initialized by the Vite CLI outside the monorepo. The project installed the SDK and Viewer tarballs locally; its ESM listener recorded request/response/worker events without ACP, awaited `close()`, then the installed `event-tape` CLI served the recording in Chrome 150 on macOS at 1365×768. The Viewer loaded the packaged HTML, scripts, stylesheet, font, and Worker from loopback; browser requests had no non-loopback destinations.

@@ -8,7 +8,7 @@ type EventDetailsPanelProps = {
 
 export const EventDetailsPanel = memo(function EventDetailsPanel({ event }: EventDetailsPanelProps) {
   return (
-    <div className="bg-card min-w-0 rounded-xl border p-5">
+    <div className="bg-card flex h-full min-h-0 min-w-0 flex-col p-4">
       <h2 className="mb-4 text-lg font-medium">Raw JSON</h2>
       {event ? (
         <JsonViewer value={event} />

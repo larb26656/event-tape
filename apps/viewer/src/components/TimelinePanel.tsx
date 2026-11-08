@@ -1,6 +1,8 @@
 import { useRef, useState } from 'react'
 import { Pause, Play, SkipBack, SkipForward } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select'
 import type { RecordingEnvelope } from '@event-tape/recording-format'
 import { TimelineOverview } from './TimelineOverview'
 
@@ -43,25 +45,22 @@ export function TimelinePanel({
   const [mark, setMark] = useState<{ events: RecordingEnvelope[]; start: number } | null>(null)
   const rangeStart = mark?.events === events ? mark.start : null
   return (
-    <div className="timeline-panel bg-card min-w-0 rounded-xl border p-5">
-      <h2 className="timeline-heading mb-4 text-lg font-medium">
+    <div className="bg-card min-w-0 border-t px-4 py-2.5 max-[700px]:p-2">
+      <h2 className="hidden">
         Timeline{' '}
         <span className="text-muted-foreground text-sm">
           ({events.length} events)
         </span>
       </h2>
       {warning && (
-        <div
-          role="status"
-          className="bg-muted text-muted-foreground mb-4 rounded-lg border p-3 text-sm"
-        >
-          Recording recovery warning: {warning}
-        </div>
+        <Alert role="status" className="mb-4">
+          <AlertDescription>Recording recovery warning: {warning}</AlertDescription>
+        </Alert>
       )}
       {error && (
-        <p role="alert" className="text-destructive">
-          {error}
-        </p>
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       )}
       {loading && (
         <p role="status" className="text-muted-foreground">
@@ -80,18 +79,18 @@ export function TimelinePanel({
         onSeek={onSeek}
         onKeyboardSeek={() => positionControl.current?.focus()}
       />
-      <p className="timeline-overview-help text-muted-foreground mb-3 text-sm">Drag to select an inclusive playback range; click to seek.</p>
-      <div className="timeline-controls mb-5 rounded-lg border p-4">
-        <div className="timeline-controls-header mb-3 flex items-center justify-between gap-2">
-          <span className="timeline-playback-label text-sm font-medium">Playback</span>
-          <label className="text-muted-foreground flex items-center gap-1 text-xs">
-            Speed
-            <select aria-label="Playback speed" value={speed} disabled={!canSeek} onChange={(event) => onSetSpeed(Number(event.target.value) as TimelinePanelProps['speed'])} className="text-foreground bg-background rounded-md border px-2 py-1.5 text-sm">
-              {([0.25, 0.5, 1, 2, 4] as const).map((value) => <option key={value} value={value}>{value}×</option>)}
-            </select>
-          </label>
+      <p className="hidden">Drag to select an inclusive playback range; click to seek.</p>
+      <div className="grid grid-cols-[auto_minmax(80px,1fr)_auto_auto] items-center gap-4 max-[700px]:grid-cols-[1fr_auto] max-[700px]:gap-2">
+        <div className="col-start-4 row-start-1 flex items-center justify-between gap-2 max-[700px]:col-span-full max-[700px]:col-start-1 max-[700px]:row-start-3">
+          <span className="hidden">Playback</span>
+          <div className="text-muted-foreground flex items-center gap-1 text-xs">
+            <label htmlFor="playback-speed">Speed</label>
+            <NativeSelect id="playback-speed" aria-label="Playback speed" value={speed} disabled={!canSeek} onChange={(event) => onSetSpeed(Number(event.target.value) as TimelinePanelProps['speed'])}>
+              {([0.25, 0.5, 1, 2, 4] as const).map((value) => <NativeSelectOption key={value} value={value}>{value}×</NativeSelectOption>)}
+            </NativeSelect>
+          </div>
         </div>
-        <div className="timeline-buttons flex items-center justify-center gap-3">
+        <div className="col-start-1 row-start-1 flex items-center justify-center gap-3 max-[700px]:row-start-2 max-[700px]:justify-start">
           <Button type="button" variant="ghost" size="icon" aria-label="Go to range start" disabled={!canSeek} onClick={() => onSeek(range?.[0] ?? 0)}><SkipBack /></Button>
           <Button type="button" size="icon" aria-label={playing ? 'Pause' : 'Play'} disabled={!canSeek || (range !== null && range[0] === range[1])} onClick={onToggle}>{playing ? <Pause /> : <Play />}</Button>
           <Button type="button" variant="ghost" size="icon" aria-label="Go to range end" disabled={!canSeek} onClick={() => onSeek(range?.[1] ?? durationMs)}><SkipForward /></Button>
@@ -100,7 +99,7 @@ export function TimelinePanel({
           ref={positionControl}
           aria-label="Playback position"
           aria-describedby="range-keyboard-help"
-          className="timeline-position mt-4 w-full accent-primary"
+          className="col-start-2 row-start-1 w-full accent-primary max-[700px]:col-span-full max-[700px]:col-start-1 max-[700px]:row-start-1"
           type="range"
           min={range?.[0] ?? 0}
           max={range?.[1] ?? durationMs}
@@ -117,11 +116,11 @@ export function TimelinePanel({
             }
           }}
         />
-        <div className="timeline-time mt-1 text-center text-muted-foreground font-mono text-xs tabular-nums">
+        <div className="text-muted-foreground col-start-3 row-start-1 whitespace-nowrap text-center font-mono text-xs tabular-nums max-[700px]:col-start-2 max-[700px]:row-start-2">
           {(playheadMs / 1000).toFixed(2)} / {(durationMs / 1000).toFixed(2)} s
         </div>
       </div>
-      <p id="range-keyboard-help" className="timeline-keyboard-help text-muted-foreground mb-3 text-xs">On the playback position, press I to mark a range start, then O to mark its end. Clear the range first to select outside it.</p>
+      <p id="range-keyboard-help" className="sr-only">On the playback position, press I to mark a range start, then O to mark its end. Clear the range first to select outside it.</p>
       <p role="status" className="text-muted-foreground text-xs">{rangeStart !== null ? `Range start marked at ${(rangeStart / 1000).toFixed(2)} s. Move the playhead and press O.` : ''}</p>
       {range && <Button type="button" variant="outline" onClick={() => { setMark(null); onClearRange() }}>Clear range</Button>}
     </div>

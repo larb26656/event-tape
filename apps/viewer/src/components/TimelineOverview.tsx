@@ -76,7 +76,7 @@ export function TimelineOverview({
       type="button"
       aria-label="Timeline overview: drag to select a playback range, or activate to seek with the keyboard"
       disabled={durationMs <= 0}
-      className="bg-muted text-primary mb-3 block w-full touch-none cursor-crosshair overflow-hidden rounded-md border"
+      className="bg-muted text-primary mb-2 block w-full touch-none cursor-crosshair overflow-hidden rounded-md border"
       onPointerDown={(event) => {
         if (event.button !== 0) return
         const bounds = event.currentTarget.getBoundingClientRect()

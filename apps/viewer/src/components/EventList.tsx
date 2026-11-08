@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import type { RecordingEnvelope } from '@event-tape/recording-format'
+import { Input } from './ui/input'
+import { cn } from 'cn'
 
 const EVENT_ROW_HEIGHT = 104
 
@@ -44,24 +46,24 @@ export function EventList({ events, range, selected, playheadMs, loading, error,
   }, [selectedResult, playheadMs, virtualizer])
 
   return (
-    <div>
+    <div className="flex min-h-0 flex-1 flex-col">
       <label htmlFor="event-search" className="mb-2 block text-sm font-medium">
         Search events
       </label>
-      <input
+      <Input
         id="event-search"
         type="search"
         value={query}
         onChange={(event) => setQuery(event.target.value)}
         placeholder="Search event JSON"
-        className="border-input bg-background focus-visible:ring-ring mb-4 w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:outline-none"
+        className="mb-4"
       />
       {!loading && !error && events.length === 0 ? (
         <p className="text-muted-foreground text-sm">No events in this recording.</p>
       ) : events.length > 0 && results.length === 0 ? (
         <p className="text-muted-foreground text-sm">{query ? 'No events match your search in this range.' : 'No events in this range.'}</p>
       ) : null}
-      <div ref={listParent} aria-label="Recording events" className="max-h-[65vh] overflow-auto">
+      <div ref={listParent} aria-label="Recording events" className="min-h-0 flex-1 overflow-auto">
       <ol
         aria-label="Recording events"
         className="relative list-none p-0"
@@ -90,7 +92,7 @@ export function EventList({ events, range, selected, playheadMs, loading, error,
                   }
                 }}
                 aria-pressed={selected === originalIndex}
-                className={`hover:bg-accent h-full w-full rounded-lg border p-3 text-left transition-colors ${selected === originalIndex ? 'bg-accent' : ''}`}
+                className={cn('hover:bg-accent focus-visible:outline-ring h-full w-full cursor-pointer border-b p-3 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px]', selected === originalIndex && 'bg-accent')}
                 onClick={() => onSelect(originalIndex)}
                 onKeyDown={(event) => {
                   if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown') return
