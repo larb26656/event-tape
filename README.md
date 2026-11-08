@@ -1,6 +1,8 @@
 # Event Tape
 
-<img src="image/event-tape-logo.png" alt="Event Tape pixel art cassette logo" width="400">
+<p align="center">
+  <img src="docs/event-tape-logo.png" alt="Event Tape pixel art cassette logo" width="400">
+</p>
 
 Record application events and inspect them later on a timeline. Event Tape pairs a headless SDK for writing recordings with a local Viewer for exploring event sequences, timing, and payloads.
 
