@@ -4,8 +4,8 @@ import { readFile } from 'node:fs/promises'
 import { parseDocument } from 'yaml'
 import { createRecorder } from '@event-tape/sdk'
 import type { Recorder } from '@event-tape/sdk'
-import { handlerRegistry } from './handlers/registry.js'
-import type { RunningHandler } from './handlers/handler.js'
+import { inputRegistry } from './inputs/registry.js'
+import type { RunningInput } from './inputs/input.js'
 
 const words = ['amber', 'birch', 'cedar', 'cloud', 'fern', 'maple', 'river', 'stone']
 
@@ -15,7 +15,7 @@ function outputName(): string {
 }
 
 export interface RecordCommandOptions {
-  handler?: string
+  input?: string
   preset?: string
   presetFile?: string
   [option: string]: unknown
@@ -30,13 +30,13 @@ export async function recordCommand(
 ): Promise<void> {
   if (options.preset !== undefined && options.presetFile !== undefined)
     throw new Error('select at most one of --preset or --preset-file')
-  const handler = handlerRegistry.get(options.handler)
-  if (!handler) throw new Error(`handler: unknown handler ${options.handler}`)
+  const input = inputRegistry.get(options.input)
+  if (!input) throw new Error(`input: unknown input ${options.input}`)
   let raw: Record<string, unknown> = {}
   if (options.preset !== undefined) {
-    if (!Object.hasOwn(handler.presets, options.preset))
-      throw new Error(`preset: unknown builtin ${options.preset} for handler ${handler.name}`)
-    raw = handler.presets[options.preset]
+    if (!Object.hasOwn(input.presets, options.preset))
+      throw new Error(`preset: unknown builtin ${options.preset} for input ${input.name}`)
+    raw = input.presets[options.preset]
   } else if (options.presetFile !== undefined) {
     let document
     try {
@@ -47,27 +47,27 @@ export async function recordCommand(
         throw new Error('preset must be a mapping')
       const fields = preset as Record<string, unknown>
       for (const key of Object.keys(fields)) {
-        if (key !== 'handler' && key !== 'options') throw new Error(`unknown preset field: ${key}`)
+        if (key !== 'input' && key !== 'options') throw new Error(`unknown preset field: ${key}`)
       }
-      if (typeof fields.handler !== 'string' || !fields.handler) throw new Error('handler must be a non-empty string')
+      if (typeof fields.input !== 'string' || !fields.input) throw new Error('input must be a non-empty string')
       if (fields.options !== undefined && (!fields.options || typeof fields.options !== 'object' || Array.isArray(fields.options)))
         throw new Error('options must be a mapping')
-      if (fields.handler !== handler.name)
-        throw new Error(`handler ${fields.handler} does not match selected handler ${handler.name}`)
+      if (fields.input !== input.name)
+        throw new Error(`input ${fields.input} does not match selected input ${input.name}`)
       raw = (fields.options ?? {}) as Record<string, unknown>
     } catch (error) {
       throw new Error(`preset-file: ${error instanceof Error ? error.message : String(error)}`, { cause: error })
     }
   }
   const overrides = { ...options }
-  for (const key of ['handler', 'preset', 'presetFile', 'output', 'shutdownTimeout']) delete overrides[key]
-  const resolved = handler.resolve(raw, overrides)
+  for (const key of ['input', 'preset', 'presetFile', 'output', 'shutdownTimeout']) delete overrides[key]
+  const resolved = input.resolve(raw, overrides)
   const timeout = options.shutdownTimeout === undefined ? 10_000 : Number(options.shutdownTimeout)
   if (!Number.isSafeInteger(timeout) || timeout <= 0 || timeout > 2_147_483_647 || (options.shutdownTimeout !== undefined && String(timeout) !== options.shutdownTimeout))
     throw new Error('shutdown-timeout: expected an integer between 1 and 2147483647 milliseconds')
 
   let failure: Error | undefined
-  let running: RunningHandler | undefined
+  let running: RunningInput | undefined
   let shutdownRequested = false
   let shutdownPromise: Promise<void> | undefined
   let recorder: Recorder
@@ -125,7 +125,7 @@ export async function recordCommand(
   process.on('SIGINT', interrupt)
   process.on('SIGTERM', interrupt)
   try {
-    running = await handler.start(resolved, recorder, fatal)
+    running = await input.start(resolved, recorder, fatal)
   } catch (error) {
     process.off('SIGINT', interrupt)
     process.off('SIGTERM', interrupt)

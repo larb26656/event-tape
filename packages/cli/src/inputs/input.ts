@@ -1,17 +1,17 @@
 import type { Recorder } from '@event-tape/sdk'
 import type { Command } from 'commander'
 
-export interface RunningHandler {
+export interface RunningInput {
   address: string
   stop(): Promise<void>
   forceStop(): void
 }
 
-export interface HandlerDefinition<T> {
+export interface InputDefinition<T> {
   name: string
   description: string
   presets: Readonly<Record<string, Record<string, unknown>>>
   configureOptions(command: Command): void
   resolve(options: Record<string, unknown>, overrides: Record<string, unknown>): T
-  start(options: T, recorder: Recorder, fatal: (error: Error) => void): Promise<RunningHandler>
+  start(options: T, recorder: Recorder, fatal: (error: Error) => void): Promise<RunningInput>
 }

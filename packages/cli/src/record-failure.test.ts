@@ -19,7 +19,7 @@ it('stops the actual HTTP session when an accepted write fails asynchronously', 
     if (message.startsWith('Listening: ')) address = message.slice('Listening: '.length)
   })
   const errors = vi.spyOn(console, 'error').mockImplementation(() => {})
-  await recordCommand({ handler: 'http', port: '0' }, (_file, onError) => createRecorder({
+  await recordCommand({ input: 'http', port: '0' }, (_file, onError) => createRecorder({
     writer: {
       write() { throw new Error('disk failed') },
       close() { closed.resolve() },
@@ -40,7 +40,7 @@ it('stops rather than acknowledging an event rejected by the bounded write queue
     if (message.startsWith('Listening: ')) address = message.slice('Listening: '.length)
   })
   vi.spyOn(console, 'error').mockImplementation(() => {})
-  await recordCommand({ handler: 'http', port: '0' }, (_file, onError) => createRecorder({
+  await recordCommand({ input: 'http', port: '0' }, (_file, onError) => createRecorder({
     maxBufferedBytes: 1,
     writer: { write() {}, close() { closed.resolve() } },
     onError,
@@ -62,7 +62,7 @@ it('retries an automatically generated collision without modifying the existing 
     await writeFile(existing, 'keep this\n')
     vi.spyOn(console, 'log').mockImplementation(() => {})
     let candidates = 0
-    await recordCommand({ handler: 'http', port: '0' }, (file, onError) => {
+    await recordCommand({ input: 'http', port: '0' }, (file, onError) => {
       const recorder = createRecorder({ file, onError })
       return {
         record: recorder.record,

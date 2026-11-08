@@ -4,7 +4,7 @@ import { execFile } from 'node:child_process'
 import { Command, CommanderError } from 'commander'
 import { serveRecording } from './local-server.js'
 import { recordCommand } from './record.js'
-import { handlerRegistry } from './handlers/registry.js'
+import { inputRegistry } from './inputs/registry.js'
 
 async function launch(recording: string | undefined, browser: boolean, command: Command) {
   if (!recording) command.error('A recording file is required', { code: 'commander.missingArgument' })
@@ -52,19 +52,19 @@ program
 
 const record = program
   .command('record')
-  .description('Record a session using a handler')
+  .description('Record a session using an input')
   .option('--output <file>', 'exclusive output file (default: .tape/<timestamp>-<word>.jsonl)')
   .option('--shutdown-timeout <ms>', 'total shutdown deadline in milliseconds (default: 10000)')
 
-for (const handler of handlerRegistry.list()) {
-  const command = record.command(handler.name).description(handler.description)
-  handler.configureOptions(command)
+for (const input of inputRegistry.list()) {
+  const command = record.command(input.name).description(input.description)
+  input.configureOptions(command)
   command.action(async (_options, actionCommand) => {
     const overrides = Object.fromEntries(
       Object.entries(actionCommand.opts()).filter(([key]) => actionCommand.getOptionValueSource(key) === 'cli'),
     )
     try {
-      await recordCommand({ ...record.opts(), ...overrides, handler: handler.name })
+      await recordCommand({ ...record.opts(), ...overrides, input: input.name })
     } catch (error) {
       actionCommand.error(error instanceof Error ? error.message : String(error))
     }

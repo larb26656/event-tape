@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto'
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http'
 import type { Socket } from 'node:net'
 import type { Recorder } from '@event-tape/sdk'
-import type { HandlerDefinition, RunningHandler } from '../handler.js'
+import type { InputDefinition, RunningInput } from '../input.js'
 import { captureBody, MAX_CAPTURE_BYTES } from './body.js'
 import { capturedHeaders, DEFAULT_REDACTED_HEADERS } from './headers.js'
 import { resolveOptions, type HttpOptions } from './options.js'
@@ -10,7 +10,7 @@ import { proxy } from './proxy.js'
 
 const MAX_REQUESTS = 128
 
-async function start(options: HttpOptions, recorder: Recorder, fatal: (error: Error) => void): Promise<RunningHandler> {
+async function start(options: HttpOptions, recorder: Recorder, fatal: (error: Error) => void): Promise<RunningInput> {
   const blocked = options.redact
     ? new Set([...DEFAULT_REDACTED_HEADERS, ...options.redactHeaders])
     : undefined
@@ -158,7 +158,7 @@ async function start(options: HttpOptions, recorder: Recorder, fatal: (error: Er
 }
 
 
-export const httpHandler: HandlerDefinition<HttpOptions> = {
+export const httpInput: InputDefinition<HttpOptions> = {
   name: 'http',
   description: 'Record HTTP/1.1 requests directly or proxy them to an upstream',
   presets: { otel: { mode: 'proxy' } },

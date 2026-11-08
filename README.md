@@ -83,7 +83,7 @@ event-tape view .tape/<announced-filename>.jsonl
 
 The listener defaults to `127.0.0.1` and an OS-assigned port; its actual address and output file are printed on startup. Use `--host` to expose another interface explicitly, `--port` to select a port, and `--output path/to/file.jsonl` to choose a file. Otherwise recordings are created in `.tape` under the working directory with a sortable UTC timestamp and random word. Parent directories are created; existing files are never overwritten or appended to.
 
-Direct capture is the default (`--mode capture`): the HTTP handler consumes ordinary HTTP/1.1 requests and responds with 204 after the Recorder accepts the request event; this is **not** a durability guarantee. It records no synthetic response.
+Direct capture is the default (`--mode capture`): the HTTP input consumes ordinary HTTP/1.1 requests and responds with 204 after the Recorder accepts the request event; this is **not** a durability guarantee. It records no synthetic response.
 
 To record traffic while forwarding it to an existing service, configure a fixed upstream and point your application at the listener:
 
@@ -94,20 +94,20 @@ curl http://127.0.0.1:8080/api?limit=10
 
 Proxy mode requires `--upstream` with an HTTP or HTTPS origin (no credentials, path, query, or fragment); it is not a client-controlled open proxy. It preserves the request method, path and query, forwards response status, headers and body, passes redirects back without following them, and does not retry requests. Request and response bodies stream with backpressure rather than being buffered in full. Recording truncation and header redaction do not truncate or modify forwarded traffic.
 
-Select the HTTP handler with `record http`. Session options such as `--output` and `--shutdown-timeout` belong to `record`; HTTP options and the mutually exclusive `--preset` and `--preset-file` belong to `http`. The builtin `otel` preset configures the HTTP proxy handler and requires your own upstream:
+Select the HTTP input with `record http`. Session options such as `--output` and `--shutdown-timeout` belong to `record`; HTTP options and the mutually exclusive `--preset` and `--preset-file` belong to `http`. The builtin `otel` preset configures the HTTP proxy input and requires your own upstream:
 
 ```sh
 event-tape record http --preset otel --upstream http://127.0.0.1:4318 --port 8080
 ```
 
-CLI handler implementations are registered in `packages/cli/src/handlers/registry.ts`; the same registry supplies record subcommands and handler lookup.
+CLI input implementations are registered in `packages/cli/src/inputs/registry.ts`; the same registry supplies record subcommands and input lookup.
 
 It captures HTTP traffic only: it is not a collector, an OTLP/gRPC endpoint, or a semantic telemetry decoder.
 
-A plain YAML file specifies the selected handler and its options; its `handler` must match the selected subcommand:
+A plain YAML file specifies the selected input and its options; its `input` must match the selected subcommand:
 
 ```yaml
-handler: http
+input: http
 options:
   mode: proxy
   upstream: http://127.0.0.1:4318
@@ -119,7 +119,7 @@ options:
   idleTimeout: 30000
 ```
 
-Run `event-tape record http --preset-file ./record.yaml`. For direct capture use `mode: capture` and omit `upstream`. Explicit CLI options override individual preset options, then handler defaults apply; for example `--no-redact` overrides `redact: true`, and `--redact` overrides `redact: false`. Repeated `--redact-header` values replace the preset's additional list; the default sensitive header list still applies when redaction is enabled. Output and shutdown timeout are CLI session settings, not preset fields. Presets do not support inheritance, expressions, executable transforms, or external handlers.
+Run `event-tape record http --preset-file ./record.yaml`. For direct capture use `mode: capture` and omit `upstream`. Explicit CLI options override individual preset options, then input defaults apply; for example `--no-redact` overrides `redact: true`, and `--redact` overrides `redact: false`. Repeated `--redact-header` values replace the preset's additional list; the default sensitive header list still applies when redaction is enabled. Output and shutdown timeout are CLI session settings, not preset fields. Presets do not support inheritance, expressions, executable transforms, or external inputs.
 
 HTTP options are validated before a recording is created or a listener is opened. Unknown preset fields are rejected. Port must be an integer from 0 to 65535, body limit from 0 to 8388608 bytes, and idle timeout from 1 to 2147483647 ms; CLI numeric values must contain decimal digits only. Proxy mode requires an HTTP or HTTPS upstream origin without credentials, path, query, or fragment; capture mode does not accept an upstream.
 

@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { httpHandler } from './index.js'
+import { httpInput } from './index.js'
 
 const cli = fileURLToPath(new URL('../../../dist/cli.mjs', import.meta.url))
 let dir: string
@@ -78,18 +78,18 @@ async function captures(file: string): Promise<Capture[]> {
 }
 
 describe('HTTP options and presets', () => {
-  it('resolves preset values and explicit overrides through the handler interface', () => {
-    expect(httpHandler.resolve(
+  it('resolves preset values and explicit overrides through the input interface', () => {
+    expect(httpInput.resolve(
       { bodyLimit: 2, redact: true, redactHeaders: ['x-old'] },
       { bodyLimit: '3', redact: false, redactHeader: ['X-New'] },
     )).toMatchObject({ bodyLimit: 3, redact: false, redactHeaders: ['x-new'], mode: 'capture' })
-    expect(() => httpHandler.resolve({ mode: 'proxy' }, {})).toThrow(/upstream/)
+    expect(() => httpInput.resolve({ mode: 'proxy' }, {})).toThrow(/upstream/)
   })
 
   it('applies YAML options and explicit boolean and numeric overrides to real capture', async () => {
     const preset = join(dir, 'capture.yaml')
     const file = join(dir, 'preset-capture.jsonl')
-    await writeFile(preset, 'handler: http\noptions:\n  bodyLimit: 2\n  redact: true\n  redactHeaders: [x-secret]\n')
+    await writeFile(preset, 'input: http\noptions:\n  bodyLimit: 2\n  redact: true\n  redactHeaders: [x-secret]\n')
     const session = await start(file, ['--preset-file', preset, '--body-limit', '3', '--no-redact'])
     try {
       expect((await fetch(session.address, { method: 'POST', body: 'abcdef', headers: { authorization: 'visible' } })).status).toBe(204)
@@ -103,7 +103,7 @@ describe('HTTP options and presets', () => {
   it('rejects invalid presets before creating an output', async () => {
     const preset = join(dir, 'invalid.yaml')
     const file = join(dir, 'invalid-output.jsonl')
-    for (const yaml of ['handler: http\noptions:\n  mode: proxy\n', 'handler: http\noutput: forbidden\n', 'handler: http\noptions:\n  bodyLimit: false\n', 'handler: [\n']) {
+    for (const yaml of ['input: http\noptions:\n  mode: proxy\n', 'input: http\noutput: forbidden\n', 'input: http\noptions:\n  bodyLimit: false\n', 'input: [\n', 'handler: http\noptions: {}\n']) {
       await writeFile(preset, yaml)
       const result = spawnSync(process.execPath, [cli, 'record', '--output', file, 'http', '--preset-file', preset], { cwd: dir, encoding: 'utf8' })
       expect(result.status).not.toBe(0)
@@ -112,14 +112,14 @@ describe('HTTP options and presets', () => {
     }
   })
 
-  it('rejects a preset for a different handler before creating output', async () => {
-    const preset = join(dir, 'wrong-handler.yaml')
-    const file = join(dir, 'wrong-handler.jsonl')
-    await writeFile(preset, 'handler: other\noptions: {}\n')
+  it('rejects a preset for a different input before creating output', async () => {
+    const preset = join(dir, 'wrong-input.yaml')
+    const file = join(dir, 'wrong-input.jsonl')
+    await writeFile(preset, 'input: other\noptions: {}\n')
     const result = spawnSync(process.execPath, [cli, 'record', '--output', file, 'http', '--preset-file', preset], { cwd: dir, encoding: 'utf8', timeout: 5000 })
     expect(result.error).toBeUndefined()
     expect(result.status).not.toBe(0)
-    expect(result.stderr).toMatch(/handler/i)
+    expect(result.stderr).toMatch(/input/i)
     await expect(readFile(file)).rejects.toMatchObject({ code: 'ENOENT' })
   })
   it('rejects invalid HTTP fields and numeric forms before opening output or a listener', async () => {
@@ -147,7 +147,7 @@ describe('HTTP options and presets', () => {
       for (const [index, [option, field]] of cases.entries()) {
         const preset = join(dir, `bad-option-${index}.yaml`)
         const file = join(dir, `bad-option-${index}`, 'recording.jsonl')
-        await writeFile(preset, `handler: http\noptions:\n  ${option}\n`)
+        await writeFile(preset, `input: http\noptions:\n  ${option}\n`)
         const args = ['record', '--output', file, 'http', '--preset-file', preset]
         if (!option!.startsWith('port:')) args.push('--port', String(address.port))
         const result = spawnSync(process.execPath, [cli, ...args], { cwd: dir, encoding: 'utf8', timeout: 5000 })
