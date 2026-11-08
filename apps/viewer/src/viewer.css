@@ -4,7 +4,8 @@
 .viewer-top { grid-row: 1; grid-column: 1; display: flex; align-items: center; gap: 16px; padding: 0 16px; background: var(--card); color: var(--card-foreground); border-bottom: 1px solid var(--border); }
 .viewer-brand { display: flex; align-items: center; gap: 8px; font-weight: 650; letter-spacing: -.02em; white-space: nowrap; }
 .viewer-brand small { color: var(--muted-foreground); font-size: 12px; font-weight: 400; }
-.viewer-mark { display: grid; place-items: center; background: var(--secondary); color: var(--secondary-foreground); width: 28px; height: 28px; border-radius: 7px; }
+.viewer-mark { display: grid; place-items: center; width: 28px; height: 28px; }
+.viewer-mark img { width: 100%; height: 100%; object-fit: contain; }
 .viewer-context { display: none; }
 .viewer-open { margin-left: auto; display: flex; align-items: center; gap: 8px; background: var(--secondary); color: var(--secondary-foreground); padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; white-space: nowrap; }
 .viewer-open:hover { background: var(--accent); }
