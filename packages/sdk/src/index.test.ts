@@ -1,144 +1,192 @@
-import type * as NodeFs from 'node:fs'
-import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
+import { mkdtemp, readFile, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { parseRecordingJsonl } from '@event-tape/recording-format'
+import { afterEach, describe, expect, it } from 'vitest'
 import { createRecorder } from './index.js'
-const writeControl = vi.hoisted(() => ({
-  mode: 'normal' as 'normal' | 'partial' | 'error',
-  calls: 0,
-  error: null as Error | null,
-}))
-vi.mock('node:fs', async (importOriginal) => {
-  const actual = await importOriginal<typeof NodeFs>()
-  return {
-    ...actual,
-    write: vi.fn((
-      fd: number,
-      buffer: Uint8Array,
-      offset: number,
-      length: number,
-      position: number | null,
-      callback: (error: NodeJS.ErrnoException | null, bytesWritten: number, buffer: Uint8Array) => void,
-    ) => {
-      writeControl.calls += 1
-      if (writeControl.mode === 'error') {
-        callback(writeControl.error as NodeJS.ErrnoException, 0, buffer)
-        return
-      }
-      const writeLength = writeControl.mode === 'partial' ? Math.max(1, Math.floor(length / 2)) : length
-      actual.write(fd, buffer, offset, writeLength, position, callback)
-    }),
-  }
-})
+import type { RecordingEnvelope } from '@event-tape/recording-format'
+import type { Writer } from './index.js'
 
-let directory: string
+let directory = ''
 afterEach(async () => {
   if (directory) await rm(directory, { recursive: true, force: true })
 })
 
-describe('createRecorder', () => {
-  it('opens synchronously and throws immediately when the destination cannot be opened', () => {
-    directory = '/path-that-does-not-exist/event-tape'
-    expect(() => createRecorder({ file: join(directory, 'recording.jsonl') })).toThrow()
-  })
-  it('snapshots synchronously and writes ordered v1 JSONL using elapsed monotonic time', async () => {
-    directory = await mkdtemp(join(tmpdir(), 'event-tape-'))
-    const file = join(directory, 'nested', 'recording.jsonl')
-    const recorder = createRecorder({ file })
-    const payload = { id: 'original' }
-    recorder.record({ source: 'listener', payload })
-    payload.id = 'mutated'
-    recorder.record({ source: 'another', direction: 'unclassified', payload: { ok: true } })
+class ArrayWriter implements Writer {
+  readonly events: RecordingEnvelope[] = []
+  closed = false
+  write(event: RecordingEnvelope) { this.events.push(event) }
+  close() { this.closed = true }
+}
+
+function deferred() {
+  let resolve!: () => void
+  const promise = new Promise<void>((resolvePromise) => { resolve = resolvePromise })
+  return { promise, resolve }
+}
+
+describe('createRecorder with a custom Writer', () => {
+  it('uses a supplied writer for structured, snapshotted v1 events', async () => {
+    const writer = new ArrayWriter()
+    const recorder = createRecorder({ writer })
+    const payload = { nested: { value: 1 } }
+    recorder.record({ source: 'test', direction: 'incoming', payload })
+    payload.nested.value = 2
     await recorder.close()
-    const lines = (await readFile(file, 'utf8')).trim().split('\n').map((line) => JSON.parse(line))
-    expect(lines).toMatchObject([
-      { version: 1, seq: 1, elapsedMs: 0, source: 'listener', payload: { id: 'original' } },
-      { version: 1, seq: 2, elapsedMs: expect.any(Number), source: 'another', direction: 'unclassified', payload: { ok: true } },
-    ])
-    expect(lines[1].elapsedMs).toBeGreaterThanOrEqual(0)
+    expect(writer.events).toHaveLength(1)
+    expect(writer.events[0]).toMatchObject({ version: 1, seq: 1, source: 'test', direction: 'incoming', payload: { nested: { value: 1 } } })
+    expect(writer.closed).toBe(true)
   })
 
-  it('completes partial writes before closing', async () => {
-    directory = await mkdtemp(join(tmpdir(), 'event-tape-'))
-    const file = join(directory, 'partial.jsonl')
-    const recorder = createRecorder({ file })
-    writeControl.mode = 'partial'
-    writeControl.calls = 0
-    recorder.record({ source: 's', payload: { text: 'partial writes must be completed' } })
-    await recorder.close()
-    expect(JSON.parse(await readFile(file, 'utf8')).payload).toEqual({ text: 'partial writes must be completed' })
-    expect(writeControl.calls).toBeGreaterThan(1)
-    writeControl.mode = 'normal'
+  it('rejects ambiguous or missing destinations before opening a file', () => {
+    const writer = new ArrayWriter()
+    expect(() => createRecorder({ file: '/path-that-does-not-exist/recording.jsonl', writer } as never)).toThrow(/exactly one/)
+    expect(() => createRecorder({} as never)).toThrow(/exactly one/)
+    expect(writer.closed).toBe(false)
   })
 
-  it('accepts an event exactly at the byte limit and drains it after rejecting an oversized event', async () => {
-    directory = await mkdtemp(join(tmpdir(), 'event-tape-'))
-    const file = join(directory, 'bounded.jsonl')
-    const exactBytes = Buffer.byteLength(`${JSON.stringify({ version: 1, seq: 1, timestamp: '2000-01-01T00:00:00.000Z', elapsedMs: 0, source: 's', payload: 'ok' })}\n`)
-    const recorder = createRecorder({ file, maxBufferedBytes: exactBytes })
-    recorder.record({ source: 's', payload: 'ok' })
-    expect(() => recorder.record({ source: 's', payload: 'x'.repeat(2048) })).toThrow(/buffer limit/)
-    await recorder.close()
-    expect((await readFile(file, 'utf8')).trim().split('\n')).toHaveLength(1)
-  })
-
-  it('throws serialization failures synchronously without consuming sequence numbers', async () => {
-    directory = await mkdtemp(join(tmpdir(), 'event-tape-'))
-    const file = join(directory, 'serialize.jsonl')
-    const recorder = createRecorder({ file })
-    const circular: Record<string, unknown> = {}
-    circular.self = circular
-    expect(() => recorder.record({ source: 's', payload: circular })).toThrow()
-    recorder.record({ source: 's', payload: 'ok' })
-    await recorder.close()
-    expect(JSON.parse(await readFile(file, 'utf8')).seq).toBe(1)
-  })
-
-  it('rejects nested values that JSON would silently omit or rewrite', async () => {
-    directory = await mkdtemp(join(tmpdir(), 'event-tape-'))
-    const file = join(directory, 'invalid.jsonl')
-    const recorder = createRecorder({ file })
-    expect(() => recorder.record({ source: 's', payload: { value: undefined } })).toThrow()
-    expect(() => recorder.record({ source: 's', payload: { value: Number.NaN } })).toThrow()
-    await recorder.close()
-    expect(await readFile(file, 'utf8')).toBe('')
-  })
-
-  it('returns the same close promise and rejects records after close starts', async () => {
-    directory = await mkdtemp(join(tmpdir(), 'event-tape-'))
-    const recorder = createRecorder({ file: join(directory, 'close.jsonl') })
+  it('serializes asynchronous writes and drains accepted events on close', async () => {
+    const events: number[] = []
+    const { promise: gate, resolve: release } = deferred()
+    const { promise: entered, resolve: signalEntered } = deferred()
+    const writer: Writer = {
+      async write(event) {
+        if (event.seq === 1) {
+          signalEntered()
+          await gate
+        }
+        events.push(event.seq)
+      },
+      close() { events.push(99) },
+    }
+    const recorder = createRecorder({ writer })
+    recorder.record({ source: 's', payload: 1 })
+    recorder.record({ source: 's', payload: 2 })
     const closing = recorder.close()
+    await entered
+    expect(events).toEqual([])
+    release()
+    await closing
+    expect(events).toEqual([1, 2, 99])
     expect(recorder.close()).toBe(closing)
-    expect(() => recorder.record({ source: 's', payload: 'late' })).toThrow(/closed/)
+  })
+
+  it('rejects invalid and lossy payloads synchronously without consuming sequence numbers', async () => {
+    const writer = new ArrayWriter()
+    const recorder = createRecorder({ writer })
+    expect(() => recorder.record({ source: 's', payload: undefined })).toThrow(/JSON-serializable/)
+    expect(() => recorder.record({ source: 's', payload: { value: Number.NaN } })).toThrow(/JSON-serializable/)
+    expect(() => recorder.record({ source: 's', payload: [1, undefined] })).toThrow(/JSON-serializable/)
+    recorder.record({ source: 's', payload: 'accepted' })
+    await recorder.close()
+    expect(writer.events.map(({ seq }) => seq)).toEqual([1])
+  })
+
+  it('rejects records after close starts', async () => {
+    const recorder = createRecorder({ writer: new ArrayWriter() })
+    const closing = recorder.close()
+    expect(() => recorder.record({ source: 's', payload: 1 })).toThrow(/closed/)
     await closing
   })
 
-  it('reports async write failures and rejects subsequent records and close', async () => {
-    directory = await mkdtemp(join(tmpdir(), 'event-tape-'))
-    const file = join(directory, 'failure.jsonl')
-    const onError = vi.fn()
-    const recorder = createRecorder({ file, onError })
-    const failure = new Error('disk failed')
-    writeControl.mode = 'error'
-    writeControl.error = failure
-    recorder.record({ source: 's', payload: 'first' })
-    await vi.waitFor(() => expect(onError).toHaveBeenCalledWith(failure))
-    expect(() => recorder.record({ source: 's', payload: 'later' })).toThrow(failure)
+  it('preserves asynchronous Writer rejection and skips queued writes', async () => {
+    const failure = new Error('async write failed')
+    const writes: number[] = []
+    const writer: Writer = {
+      async write(event) {
+        writes.push(event.seq)
+        if (event.seq === 1) throw failure
+      },
+      close() {},
+    }
+    const recorder = createRecorder({ writer })
+    recorder.record({ source: 's', payload: 1 })
+    recorder.record({ source: 's', payload: 2 })
     await expect(recorder.close()).rejects.toBe(failure)
-    expect(onError).toHaveBeenCalledTimes(1)
-    writeControl.mode = 'normal'
-    writeControl.error = null
+    expect(writes).toEqual([1])
+    expect(() => recorder.record({ source: 's', payload: 3 })).toThrow(failure)
   })
 
-  it('rejects existing files synchronously without changing them', async () => {
-    directory = await mkdtemp(join(tmpdir(), 'event-tape-'))
-    const file = join(directory, 'existing.jsonl')
-    await writeFile(file, 'original')
-    expect(() => createRecorder({ file })).toThrow()
-    expect(await readFile(file, 'utf8')).toBe('original')
-    const recorder = createRecorder({ file: join(directory, 'new.jsonl') })
-    expect(() => recorder.record({ source: 'listener', payload: undefined })).toThrow(/JSON-serializable/)
+  it('reports write failures and keeps them authoritative over callback and shutdown failures', async () => {
+    const failure = new Error('write failed')
+    const closeFailure = new Error('close failed')
+    let reported: Error | undefined
+    const writer: Writer = {
+      write() { return Promise.reject(failure) },
+      close() { throw closeFailure },
+    }
+    const recorder = createRecorder({ writer, onError(error) { reported = error; throw new Error('callback failed') } })
+    recorder.record({ source: 's', payload: 1 })
+    await expect(recorder.close()).rejects.toBe(failure)
+    expect(reported).toBe(failure)
+  })
+
+  it('rejects shutdown when only Writer.close fails, including undefined rejections', async () => {
+    const recorder = createRecorder({ writer: { write() {}, close() { throw new Error('close failed') } } })
+    await expect(recorder.close()).rejects.toThrow('close failed')
+
+    const undefinedThrow = createRecorder({ writer: { write() {}, close() { throw undefined } } })
+    await expect(undefinedThrow.close()).rejects.toBeUndefined()
+
+    const undefinedRejection = createRecorder({ writer: { write() {}, close() { return Promise.reject(undefined) } } })
+    await expect(undefinedRejection.close()).rejects.toBeUndefined()
+  })
+
+  it('writes parseable, ordered, snapshotted events to a default file', async () => {
+    directory = await mkdtemp(join(tmpdir(), 'event-tape-recorder-'))
+    const file = join(directory, 'recording.jsonl')
+    const recorder = createRecorder({ file })
+    const payload = { nested: { value: 1 } }
+    recorder.record({ source: 'listener', direction: 'incoming', payload })
+    payload.nested.value = 2
+    recorder.record({ source: 'listener', direction: 'outgoing', payload: { value: 'second' } })
     await recorder.close()
+
+    const result = parseRecordingJsonl(await readFile(file, 'utf8'))
+    expect(result.warning).toBeUndefined()
+    expect(result.events).toHaveLength(2)
+    expect(result.events.map(({ seq }) => seq)).toEqual([1, 2])
+    expect(result.events.map(({ version }) => version)).toEqual([1, 1])
+    expect(result.events.map(({ source }) => source)).toEqual(['listener', 'listener'])
+    expect(result.events.every(({ timestamp, elapsedMs }) => Number.isFinite(Date.parse(timestamp)) && elapsedMs >= 0)).toBe(true)
+    expect(result.events.map(({ direction }) => direction)).toEqual(['incoming', 'outgoing'])
+    expect(result.events[0]?.payload).toEqual({ nested: { value: 1 } })
+    expect(result.events[1]?.payload).toEqual({ value: 'second' })
+  })
+
+  it('accounts canonical JSONL UTF-8 bytes and resumes acceptance when a write completes', async () => {
+    const events: RecordingEnvelope[] = []
+    const { promise: gate, resolve: release } = deferred()
+    const { promise: entered, resolve: signalEntered } = deferred()
+    const { promise: secondStarted, resolve: signalSecondStarted } = deferred()
+    const writer: Writer = {
+      async write(event) {
+        if (event.seq === 1) {
+          signalEntered()
+          await gate
+        }
+        events.push(event)
+        if (event.seq === 2) signalSecondStarted()
+      },
+      close() {},
+    }
+    const canonicalLine = `${JSON.stringify({
+      version: 1, seq: 1, timestamp: '2000-01-01T00:00:00.000Z', elapsedMs: 0, source: 's', payload: 'é',
+    })}\n`
+    const canonicalLineBytes = Buffer.byteLength(canonicalLine)
+    const newlineLimitRecorder = createRecorder({ writer: new ArrayWriter(), maxBufferedBytes: canonicalLineBytes - 1 })
+    expect(() => newlineLimitRecorder.record({ source: 's', payload: 'é' })).toThrow(/buffer limit/)
+    await newlineLimitRecorder.close()
+
+    const recorder = createRecorder({ writer, maxBufferedBytes: canonicalLineBytes * 2 + 100 })
+    recorder.record({ source: 's', payload: 'é' })
+    recorder.record({ source: 's', payload: 'é' })
+    await entered
+    expect(() => recorder.record({ source: 's', payload: 'é' })).toThrow(/buffer limit/)
+    release()
+    await secondStarted
+    recorder.record({ source: 's', payload: 'é' })
+    await recorder.close()
+    expect(events.map(({ seq }) => seq)).toEqual([1, 2, 3])
   })
 })

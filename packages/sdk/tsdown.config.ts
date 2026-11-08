@@ -3,8 +3,11 @@ import { defineConfig } from 'tsdown'
 export default defineConfig({
   entry: ['src/index.ts'],
   format: 'esm',
-  dts: true,
+  dts: { tsc: { eager: true } },
   exports: true,
   clean: true,
-  noExternal: ['@event-tape/recording-format'],
+  deps: {
+    alwaysBundle: ['@event-tape/recording-format'],
+    dts: { alwaysBundle: ['@event-tape/recording-format'] },
+  },
 })
