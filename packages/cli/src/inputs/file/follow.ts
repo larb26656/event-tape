@@ -5,18 +5,6 @@ import type { RunningInput } from '../input.js'
 import type { FileOptions } from './options.js'
 import { createLineParser } from './lines.js'
 
-// Compare decimal values without converting the original number to a float.
-function decimalValue(number: string): string {
-  const match = /^(-?)(\d+)(?:\.(\d+))?(?:e([+-]?\d+))?$/i.exec(number)!
-  const digits = (match[2]! + (match[3] ?? '')).replace(/^0+/, '')
-  if (!digits) return '0'
-  const significant = digits.replace(/0+$/, '')
-  const exponentText = match[4] ?? '0'
-  if (exponentText.replace(/^[+-]?0*/, '').length > 8) throw new Error('JSON exponent is too large')
-  const exponent = Number(exponentText) - (match[3]?.length ?? 0) + digits.length - significant.length
-  return `${match[1]}${significant}e${exponent}`
-}
-
 export async function startFile(path: string, options: FileOptions, recorder: Recorder, fatal: (error: Error) => void): Promise<RunningInput> {
   let handle: FileHandle | undefined
   let position = 0
@@ -42,14 +30,10 @@ export async function startFile(path: string, options: FileOptions, recorder: Re
       let payload: { path: string; partial: boolean; text: string } | { path: string; partial: boolean; json: unknown } = { path, text, partial }
       if (!partial) {
         try {
-          const json: unknown = JSON.parse(text, (_key: string, value: unknown, context?: { source?: string }) => {
-            if (typeof value === 'number' && (!Number.isFinite(value) || decimalValue(context!.source!) !== decimalValue(String(value))))
-              throw new Error('JSON number loses precision')
-            return value
-          })
+          const json: unknown = JSON.parse(text)
           payload = { path, json, partial }
         } catch {
-          // Preserve the original line when JSON parsing would lose information.
+          // Preserve lines that are not valid JSON.
         }
       }
       recorder.record({ source: 'file', payload })

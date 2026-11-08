@@ -24,4 +24,25 @@ describe('file follower', () => {
       await rm(dir, { recursive: true, force: true })
     }
   })
+
+  it('records complete JSON as values and other lines as text', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'event-tape-file-follow-'))
+    try {
+      const path = join(dir, 'input.log')
+      await writeFile(path, '{"level":"info"}\n[true,null]\n9007199254740993\n{"broken":\nplain text\n123')
+      const record = vi.fn()
+      const follower = await startFile(path, { paths: [path], fromStart: true }, { record, close: async () => {} }, vi.fn())
+      await follower.stop()
+      expect(record.mock.calls.map(([event]) => event.payload)).toEqual([
+        { path, json: { level: 'info' }, partial: false },
+        { path, json: [true, null], partial: false },
+        { path, json: 9007199254740992, partial: false },
+        { path, text: '{"broken":', partial: false },
+        { path, text: 'plain text', partial: false },
+        { path, text: '123', partial: true },
+      ])
+    } finally {
+      await rm(dir, { recursive: true, force: true })
+    }
+  })
 })
