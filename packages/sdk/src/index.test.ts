@@ -1,3 +1,4 @@
+import { parseRecordingJsonl } from '@event-tape/recording-format'
 import type * as NodeFs from 'node:fs'
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
@@ -51,12 +52,12 @@ describe('createRecorder', () => {
     payload.id = 'mutated'
     recorder.record({ source: 'another', direction: 'unclassified', payload: { ok: true } })
     await recorder.close()
-    const lines = (await readFile(file, 'utf8')).trim().split('\n').map((line) => JSON.parse(line))
-    expect(lines).toMatchObject([
+    const events = parseRecordingJsonl(await readFile(file, 'utf8')).events
+    expect(events).toMatchObject([
       { version: 1, seq: 1, elapsedMs: 0, source: 'listener', payload: { id: 'original' } },
       { version: 1, seq: 2, elapsedMs: expect.any(Number), source: 'another', direction: 'unclassified', payload: { ok: true } },
     ])
-    expect(lines[1].elapsedMs).toBeGreaterThanOrEqual(0)
+    expect(events[1]?.elapsedMs).toBeGreaterThanOrEqual(0)
   })
 
   it('completes partial writes before closing', async () => {
