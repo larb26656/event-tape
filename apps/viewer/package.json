@@ -52,5 +52,8 @@
     "vite": "8.0.0",
     "vitest": "4.1.0",
     "zustand": "5.0.11"
+  },
+  "dependencies": {
+    "react-resizable-panels": "^4.19.1"
   }
 }

@@ -6,6 +6,7 @@ import { EventList } from './components/EventList'
 import { ViewerHeader } from './components/ViewerHeader'
 import { TimelinePanel } from './components/TimelinePanel'
 import { createPlaybackStore } from './playback'
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from './components/ui/resizable'
 import type { RecordingEnvelope } from '@event-tape/recording-format'
 import './viewer.css'
 
@@ -16,6 +17,13 @@ type WorkerResult = {
 }
 
 export default function App() {
+  const [narrow, setNarrow] = useState(() => window.matchMedia('(max-width: 700px)').matches)
+  useEffect(() => {
+    const query = window.matchMedia('(max-width: 700px)')
+    const update = () => setNarrow(query.matches)
+    query.addEventListener('change', update)
+    return () => query.removeEventListener('change', update)
+  }, [])
   const [playback] = useState(createPlaybackStore)
   const events = useStore(playback, (state) => state.events)
   const playheadMs = useStore(playback, (state) => state.playheadMs)
@@ -158,15 +166,16 @@ export default function App() {
       }} />
       {!hasRecording && !loading && !error ? <EmptyRecording onOpen={openFile} /> : (
         <div className="viewer-content">
-          <div className="viewer-workspace">
-            <section aria-labelledby="recording-events-heading" className="viewer-events bg-card min-w-0 rounded-xl border p-5">
+          <ResizablePanelGroup className="viewer-workspace" orientation={narrow ? 'vertical' : 'horizontal'}>
+            <ResizablePanel defaultSize={narrow ? '50%' : '320px'} minSize={narrow ? '15%' : '180px'}><section id="recording-events-panel" aria-labelledby="recording-events-heading" className="viewer-events bg-card min-w-0 rounded-xl border p-5">
               <h2 id="recording-events-heading" className="mb-4 text-lg font-medium">
                 Recording events <span className="text-muted-foreground text-sm">({visibleCount})</span>
               </h2>
               <EventList events={events} range={range} selected={selected} playheadMs={playheadMs} loading={loading} error={error} onSelect={(index) => playback.getState().selectEvent(index)} />
-            </section>
-            <div className="viewer-json"><EventDetailsPanel event={event} /></div>
-          </div>
+            </section></ResizablePanel>
+            <ResizableHandle withHandle aria-label="Resize recording events panel" />
+            <ResizablePanel minSize={narrow ? '15%' : '180px'}><div className="viewer-json"><EventDetailsPanel event={event} /></div></ResizablePanel>
+          </ResizablePanelGroup>
           <div className="viewer-player">
             <TimelinePanel
               events={events}

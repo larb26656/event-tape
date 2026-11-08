@@ -30,6 +30,8 @@ The shortcut builds the Viewer and opens the sample in your browser. The Viewer 
 
 In the Viewer, search filters the event list without changing playback or the inspected event. Select an event to pause playback and move the playhead to it. Focus an event row and use ↑ or ↓ to select the previous or next visible event; navigation stops at the ends of the list. Arrow keys in the search field remain available for editing. Drag on the timeline to select an inclusive playback range.
 
+The Viewer keeps file controls in a compact header, with independently scrolling event and JSON panes above a full-width player. Drag the divider or use its arrow keys to resize the panes; on narrow screens the panes stack.
+
 ## Use Event Tape in your project
 
 The packages are installed from this checkout; these commands do not publish them to a registry.
