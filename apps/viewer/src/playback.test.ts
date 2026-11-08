@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest'
-import { createPlaybackStore } from './playback'
+import { beforeEach, describe, expect, it } from 'vitest'
+import { usePlaybackStore as store } from './stores/playback'
 import type { RecordingEnvelope } from '@event-tape/recording-format'
 
 const events = [
@@ -15,9 +15,10 @@ const events = [
   ...event,
 })) satisfies RecordingEnvelope[]
 
+beforeEach(() => store.setState(store.getInitialState(), true))
+
 describe('playback clock and event lookup', () => {
   it('advances by elapsed time, preserving quiet intervals and pause', () => {
-    const store = createPlaybackStore()
     store.getState().setEvents(events)
     store.getState().play()
     store.getState().advance(2500)
@@ -31,14 +32,12 @@ describe('playback clock and event lookup', () => {
   })
 
   it('uses highest sequence when events share the current timestamp', () => {
-    const store = createPlaybackStore()
     store.getState().setEvents(events)
     store.getState().seek(10_000)
     expect(store.getState().currentEvent()?.seq).toBe(4)
   })
 
   it('selects an exact event and stops; seeking also pauses', () => {
-    const store = createPlaybackStore()
     store.getState().setEvents(events)
     store.getState().play()
     store.getState().selectEvent(1)
@@ -51,7 +50,6 @@ describe('playback clock and event lookup', () => {
   })
 
   it('stops at duration and disables play on empty or zero-duration recordings', () => {
-    const store = createPlaybackStore()
     store.getState().setEvents(events)
     store.getState().play()
     store.getState().setSpeed(4)
@@ -67,7 +65,6 @@ describe('playback clock and event lookup', () => {
   })
 
   it('seeking at a selected tied timestamp shows the latest event by sequence', () => {
-    const store = createPlaybackStore()
     store.getState().setEvents(events)
     store.getState().selectEvent(1)
     expect(store.getState().currentEvent()?.seq).toBe(2)
@@ -79,7 +76,6 @@ describe('playback clock and event lookup', () => {
   })
 
   it('keeps a requested quiet-interval time while inspecting the nearest event', () => {
-    const store = createPlaybackStore()
     store.getState().setEvents(events)
     store.getState().play()
     store.getState().seek(6_000)
@@ -97,7 +93,6 @@ describe('playback clock and event lookup', () => {
   })
 
   it('clears selection and playhead when a different recording is loaded', () => {
-    const store = createPlaybackStore()
     store.getState().setEvents(events)
     store.getState().selectEvent(3)
     store.getState().setEvents([events[0]!])
@@ -114,7 +109,6 @@ describe('playback clock and event lookup', () => {
       elapsedMs: index,
       payload: { index },
     }))
-    const store = createPlaybackStore()
     store.getState().setEvents(largeRecording)
     store.getState().selectEvent(99_999)
 

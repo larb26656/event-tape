@@ -1,4 +1,4 @@
-import { createStore } from 'zustand/vanilla'
+import { create } from 'zustand'
 import type { RecordingEnvelope } from '@event-tape/recording-format'
 
 export function eventAtTime(
@@ -63,8 +63,7 @@ type PlaybackState = {
   currentEvent: () => RecordingEnvelope | undefined
 }
 
-export function createPlaybackStore() {
-  return createStore<PlaybackState>()((set, get) => ({
+export const usePlaybackStore = create<PlaybackState>()((set, get) => ({
     events: [],
     playheadMs: 0,
     playing: false,
@@ -119,5 +118,4 @@ export function createPlaybackStore() {
       const state = get()
       return state.events[state.selectedIndex] ?? state.events[currentIndex(state.events, state.playheadMs, state.range)]
     },
-  }))
-}
+}))

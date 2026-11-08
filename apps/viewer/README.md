@@ -33,6 +33,8 @@ Search events matches a case-insensitive substring anywhere in the complete even
 
 The Viewer uses Tailwind and shadcn's Base UI Nova components. Add shadcn components with `pnpm dlx shadcn@latest add <component>` from the Viewer directory; do not hand-write replacements. Keep theme and syntax styles in the shared stylesheet and runtime-calculated styles where needed for virtualized or canvas-based views.
 
+Playback state and actions live in the global Zustand store in `src/stores/playback.ts`. Viewer feature components subscribe to the fields they use. Opening a Recording resets its Playback position, selection, and range while retaining the selected speed.
+
 ## Target-size and external-package smoke
 
 A packed-artifact smoke was run from a Vite project initialized by the Vite CLI outside the monorepo. The project installed the SDK and Viewer tarballs locally; its ESM listener recorded request/response/worker events without ACP, awaited `close()`, then the installed `event-tape` CLI served the recording in Chrome 150 on macOS at 1365×768. The Viewer loaded the packaged HTML, scripts, stylesheet, font, and Worker from loopback; browser requests had no non-loopback destinations.

@@ -1,22 +1,22 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
-import type { RecordingEnvelope } from '@event-tape/recording-format'
+import { usePlaybackStore } from '../stores/playback'
 import { Input } from './ui/input'
 import { EventCard } from './EventCard'
 
 const EVENT_ROW_HEIGHT = 104
 
 type EventListProps = {
-  events: RecordingEnvelope[]
-  range: [number, number] | null
-  selected: number
-  playheadMs: number
   loading: boolean
   error: string
-  onSelect: (index: number) => void
 }
 
-export function EventList({ events, range, selected, playheadMs, loading, error, onSelect }: EventListProps) {
+export function EventList({ loading, error }: EventListProps) {
+  const events = usePlaybackStore((state) => state.events)
+  const range = usePlaybackStore((state) => state.range)
+  const selected = usePlaybackStore((state) => state.selectedIndex)
+  const playheadMs = usePlaybackStore((state) => state.playheadMs)
+  const onSelect = usePlaybackStore((state) => state.selectEvent)
   const listParent = useRef<HTMLDivElement>(null)
   const focusResult = useRef<number | null>(null)
   const [query, setQuery] = useState('')

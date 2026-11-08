@@ -1,11 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useStore } from 'zustand'
 import { EventDetailsPanel } from './components/EventDetailsPanel'
 import { EmptyRecording } from './components/EmptyRecording'
 import { EventList } from './components/EventList'
 import { ViewerHeader } from './components/ViewerHeader'
 import { TimelinePanel } from './components/TimelinePanel'
-import { createPlaybackStore } from './playback'
+import { usePlaybackStore as playback } from './stores/playback'
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from './components/ui/resizable'
 import { createRecordingLoader } from './recording-loading'
 import type { RecordingLoader } from './recording-loading'
@@ -19,18 +18,12 @@ export default function App() {
     query.addEventListener('change', update)
     return () => query.removeEventListener('change', update)
   }, [])
-  const [playback] = useState(createPlaybackStore)
-  const events = useStore(playback, (state) => state.events)
-  const playheadMs = useStore(playback, (state) => state.playheadMs)
-  const playing = useStore(playback, (state) => state.playing)
-  const speed = useStore(playback, (state) => state.speed)
-  const selected = useStore(playback, (state) => state.selectedIndex)
-  const durationMs = useStore(playback, (state) => state.durationMs)
-  const range = useStore(playback, (state) => state.range)
+  const events = playback((state) => state.events)
+  const playing = playback((state) => state.playing)
+  const range = playback((state) => state.range)
   const visibleCount = useMemo(() => range
     ? events.filter((event) => event.elapsedMs >= range[0] && event.elapsedMs <= range[1]).length
     : events.length, [events, range])
-  const canSeek = useStore(playback, (state) => state.canSeek)
   const [error, setError] = useState('')
   const [warning, setWarning] = useState('')
   const [loading, setLoading] = useState(true)
@@ -50,9 +43,10 @@ export default function App() {
     }
     frame = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(frame)
-  }, [playback, playing])
+  }, [playing])
 
   useEffect(() => {
+    playback.setState(playback.getInitialState(), true)
     const loader = createRecordingLoader((update) => {
       if (update.type === 'loading') {
         setError('')
@@ -85,13 +79,13 @@ export default function App() {
     return () => {
       loader.dispose()
       if (loaderRef.current === loader) loaderRef.current = null
+      playback.setState(playback.getInitialState(), true)
     }
-  }, [playback])
+  }, [])
 
   const chooseFile = (file?: File) => {
     if (file) loaderRef.current?.loadFile(file)
   }
-  const event = playback.getState().currentEvent()
 
   const openFile = () => document.getElementById('recording-file')?.click()
 
@@ -109,28 +103,16 @@ export default function App() {
               <h2 id="recording-events-heading" className="mb-4 text-lg font-medium">
                 Recording events <span className="text-muted-foreground text-sm">({visibleCount})</span>
               </h2>
-              <EventList events={events} range={range} selected={selected} playheadMs={playheadMs} loading={loading} error={error} onSelect={(index) => playback.getState().selectEvent(index)} />
+              <EventList loading={loading} error={error} />
             </section></ResizablePanel>
             <ResizableHandle withHandle aria-label="Resize recording events panel" />
-            <ResizablePanel minSize={narrow ? '15%' : '180px'}><EventDetailsPanel event={event} /></ResizablePanel>
+            <ResizablePanel minSize={narrow ? '15%' : '180px'}><EventDetailsPanel /></ResizablePanel>
           </ResizablePanelGroup>
           <div className="min-w-0 flex-none">
             <TimelinePanel
-              events={events}
-              playheadMs={playheadMs}
-              playing={playing}
-              speed={speed}
-              durationMs={durationMs}
-              range={range}
-              canSeek={canSeek}
               error={error}
               warning={warning}
               loading={loading}
-              onToggle={() => playback.getState().toggle()}
-              onSetSpeed={(value) => playback.getState().setSpeed(value)}
-              onSeek={(value) => playback.getState().seek(value)}
-              onSetRange={(start, end) => playback.getState().setRange(start, end)}
-              onClearRange={() => playback.getState().clearRange()}
             />
           </div>
         </div>

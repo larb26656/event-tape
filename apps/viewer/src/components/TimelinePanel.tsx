@@ -5,42 +5,31 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select'
 import type { RecordingEnvelope } from '@event-tape/recording-format'
 import { TimelineOverview } from './TimelineOverview'
+import { usePlaybackStore } from '../stores/playback'
 
 type TimelinePanelProps = {
-  events: RecordingEnvelope[]
-  playheadMs: number
-  playing: boolean
-  speed: 0.25 | 0.5 | 1 | 2 | 4
-  durationMs: number
-  range: [number, number] | null
-  canSeek: boolean
   error: string
   warning: string
   loading: boolean
-  onToggle: () => void
-  onSetSpeed: (speed: 0.25 | 0.5 | 1 | 2 | 4) => void
-  onSeek: (positionMs: number) => void
-  onSetRange: (start: number, end: number) => void
-  onClearRange: () => void
 }
 
 export function TimelinePanel({
-  events,
-  playheadMs,
-  playing,
-  speed,
-  durationMs,
-  range,
-  canSeek,
   error,
   warning,
   loading,
-  onToggle,
-  onSetSpeed,
-  onSeek,
-  onSetRange,
-  onClearRange,
 }: TimelinePanelProps) {
+  const events = usePlaybackStore((state) => state.events)
+  const playheadMs = usePlaybackStore((state) => state.playheadMs)
+  const playing = usePlaybackStore((state) => state.playing)
+  const speed = usePlaybackStore((state) => state.speed)
+  const durationMs = usePlaybackStore((state) => state.durationMs)
+  const range = usePlaybackStore((state) => state.range)
+  const canSeek = usePlaybackStore((state) => state.canSeek)
+  const onToggle = usePlaybackStore((state) => state.toggle)
+  const onSetSpeed = usePlaybackStore((state) => state.setSpeed)
+  const onSeek = usePlaybackStore((state) => state.seek)
+  const onSetRange = usePlaybackStore((state) => state.setRange)
+  const onClearRange = usePlaybackStore((state) => state.clearRange)
   const positionControl = useRef<HTMLInputElement>(null)
   const [mark, setMark] = useState<{ events: RecordingEnvelope[]; start: number } | null>(null)
   const rangeStart = mark?.events === events ? mark.start : null
@@ -90,7 +79,7 @@ export function TimelinePanel({
           <span className="hidden">Playback</span>
           <div className="text-muted-foreground flex items-center gap-1 text-xs">
             <label htmlFor="playback-speed">Speed</label>
-            <NativeSelect id="playback-speed" aria-label="Playback speed" value={speed} disabled={!canSeek} onChange={(event) => onSetSpeed(Number(event.target.value) as TimelinePanelProps['speed'])}>
+            <NativeSelect id="playback-speed" aria-label="Playback speed" value={speed} disabled={!canSeek} onChange={(event) => onSetSpeed(Number(event.target.value) as typeof speed)}>
               {([0.25, 0.5, 1, 2, 4] as const).map((value) => <NativeSelectOption key={value} value={value}>{value}×</NativeSelectOption>)}
             </NativeSelect>
           </div>
