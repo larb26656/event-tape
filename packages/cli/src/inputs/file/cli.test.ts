@@ -189,7 +189,7 @@ describe('event-tape record file executable', () => {
       await appendFile(path, Buffer.concat([thai.subarray(1), Buffer.from('\n')]))
       expect(await record.stop('SIGTERM', true), record.diagnostic('shutdown')).toEqual({ code: 0, signal: null })
       expect(parseRecordingJsonl(await readFile(file, 'utf8')).events.map(({ payload }) => payload)).toEqual([
-        { path, text: '  {"x":1}  ', partial: false },
+        { path, json: { x: 1 }, partial: false },
         { path, text: '', partial: false },
         { path, text: 'สวัสดี', partial: false },
         { path, text: '界', partial: false },
