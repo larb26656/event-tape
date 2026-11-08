@@ -7,15 +7,18 @@ type TimelinePanelProps = {
   events: RecordingEnvelope[]
   playheadMs: number
   playing: boolean
-  speed: 1 | 2 | 4
+  speed: 0.25 | 0.5 | 1 | 2 | 4
   durationMs: number
+  range: [number, number] | null
   canSeek: boolean
   error: string
   warning: string
   loading: boolean
   onToggle: () => void
-  onSetSpeed: (speed: 1 | 2 | 4) => void
+  onSetSpeed: (speed: 0.25 | 0.5 | 1 | 2 | 4) => void
   onSeek: (positionMs: number) => void
+  onSetRange: (start: number, end: number) => void
+  onClearRange: () => void
 }
 
 export function TimelinePanel({
@@ -24,6 +27,7 @@ export function TimelinePanel({
   playing,
   speed,
   durationMs,
+  range,
   canSeek,
   error,
   warning,
@@ -31,6 +35,8 @@ export function TimelinePanel({
   onToggle,
   onSetSpeed,
   onSeek,
+  onSetRange,
+  onClearRange,
 }: TimelinePanelProps) {
   const positionControl = useRef<HTMLInputElement>(null)
   return (
@@ -66,18 +72,21 @@ export function TimelinePanel({
         events={events}
         durationMs={durationMs}
         playheadMs={playheadMs}
+        range={range}
+        onSetRange={onSetRange}
         onSeek={onSeek}
         onKeyboardSeek={() => positionControl.current?.focus()}
       />
+      <p className="text-muted-foreground mb-3 text-sm">Drag to select an inclusive playback range; click to seek.</p>
       <div className="mb-4 flex flex-wrap items-center gap-2">
-        <Button variant="outline" disabled={!canSeek} onClick={onToggle}>
+        <Button variant="outline" disabled={!canSeek || (range !== null && range[0] === range[1])} onClick={onToggle}>
           {playing ? 'Pause' : 'Play'}
         </Button>
-        {[1, 2, 4].map((value) => (
+        {([0.25, 0.5, 1, 2, 4] as const).map((value) => (
           <Button
             key={value}
             disabled={!canSeek}
-            onClick={() => onSetSpeed(value as 1 | 2 | 4)}
+            onClick={() => onSetSpeed(value)}
             aria-pressed={speed === value}
           >
             {value}×
@@ -93,13 +102,33 @@ export function TimelinePanel({
         aria-label="Playback position"
         className="mb-4 w-full accent-primary"
         type="range"
-        min={0}
-        max={durationMs}
+        min={range?.[0] ?? 0}
+        max={range?.[1] ?? durationMs}
         step="any"
         value={playheadMs}
-        disabled={!canSeek}
+        disabled={!canSeek || (range !== null && range[0] === range[1])}
         onChange={(event) => onSeek(Number(event.target.value))}
       />
+      <form
+        key={`${durationMs}:${range?.[0] ?? 0}:${range?.[1] ?? durationMs}`}
+        className="flex flex-wrap items-end gap-3"
+        onSubmit={(event) => {
+          event.preventDefault()
+          const data = new FormData(event.currentTarget)
+          onSetRange(Number(data.get('start')), Number(data.get('end')))
+        }}
+      >
+        <label className="text-sm">
+          Range start (ms)
+          <input name="start" type="number" min={0} max={durationMs} step="any" required defaultValue={range?.[0] ?? 0} disabled={!canSeek} className="border-input bg-background mt-1 block w-32 rounded-md border px-2 py-1" />
+        </label>
+        <label className="text-sm">
+          Range end (ms)
+          <input name="end" type="number" min={0} max={durationMs} step="any" required defaultValue={range?.[1] ?? durationMs} disabled={!canSeek} className="border-input bg-background mt-1 block w-32 rounded-md border px-2 py-1" />
+        </label>
+        <Button type="submit" variant="outline" disabled={!canSeek}>Apply range</Button>
+        <Button type="button" variant="outline" disabled={!range} onClick={onClearRange}>Clear range</Button>
+      </form>
     </div>
   )
 }

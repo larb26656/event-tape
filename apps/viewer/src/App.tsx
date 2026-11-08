@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useStore } from 'zustand'
 import { EventDetailsPanel } from './components/EventDetailsPanel'
 import { EventList } from './components/EventList'
@@ -21,6 +21,10 @@ export default function App() {
   const speed = useStore(playback, (state) => state.speed)
   const selected = useStore(playback, (state) => state.selectedIndex)
   const durationMs = useStore(playback, (state) => state.durationMs)
+  const range = useStore(playback, (state) => state.range)
+  const visibleCount = useMemo(() => range
+    ? events.filter((event) => event.elapsedMs >= range[0] && event.elapsedMs <= range[1]).length
+    : events.length, [events, range])
   const canSeek = useStore(playback, (state) => state.canSeek)
   const [error, setError] = useState('')
   const [warning, setWarning] = useState('')
@@ -118,9 +122,9 @@ export default function App() {
       <section className="mx-auto grid max-w-screen-2xl items-start gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)_minmax(0,1fr)]">
         <section aria-labelledby="recording-events-heading" className="bg-card min-w-0 rounded-xl border p-5">
           <h2 id="recording-events-heading" className="mb-4 text-lg font-medium">
-            Recording events <span className="text-muted-foreground text-sm">({events.length})</span>
+            Recording events <span className="text-muted-foreground text-sm">({visibleCount})</span>
           </h2>
-          <EventList events={events} selected={selected} playheadMs={playheadMs} loading={loading} error={error} onSelect={(index) => playback.getState().selectEvent(index)} />
+          <EventList events={events} range={range} selected={selected} playheadMs={playheadMs} loading={loading} error={error} onSelect={(index) => playback.getState().selectEvent(index)} />
         </section>
         <TimelinePanel
           events={events}
@@ -128,6 +132,7 @@ export default function App() {
           playing={playing}
           speed={speed}
           durationMs={durationMs}
+          range={range}
           canSeek={canSeek}
           error={error}
           warning={warning}
@@ -135,6 +140,8 @@ export default function App() {
           onToggle={() => playback.getState().toggle()}
           onSetSpeed={(value) => playback.getState().setSpeed(value)}
           onSeek={(value) => playback.getState().seek(value)}
+          onSetRange={(start, end) => playback.getState().setRange(start, end)}
+          onClearRange={() => playback.getState().clearRange()}
         />
         <EventDetailsPanel event={event} />
       </section>

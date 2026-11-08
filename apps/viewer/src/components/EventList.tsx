@@ -6,6 +6,7 @@ const EVENT_ROW_HEIGHT = 104
 
 type EventListProps = {
   events: RecordingEnvelope[]
+  range: [number, number] | null
   selected: number
   playheadMs: number
   loading: boolean
@@ -13,7 +14,7 @@ type EventListProps = {
   onSelect: (index: number) => void
 }
 
-export function EventList({ events, selected, playheadMs, loading, error, onSelect }: EventListProps) {
+export function EventList({ events, range, selected, playheadMs, loading, error, onSelect }: EventListProps) {
   const listParent = useRef<HTMLDivElement>(null)
   const focusResult = useRef<number | null>(null)
   const [query, setQuery] = useState('')
@@ -22,10 +23,12 @@ export function EventList({ events, selected, playheadMs, loading, error, onSele
   ), [events])
   const results = useMemo(() => {
     const needle = query.toLowerCase()
-    return needle
-      ? ordered.filter((index) => JSON.stringify(events[index]).toLowerCase().includes(needle))
-      : ordered
-  }, [events, ordered, query])
+    return ordered.filter((index) => {
+      const event = events[index]
+      return (!range || (event.elapsedMs >= range[0] && event.elapsedMs <= range[1]))
+        && (!needle || JSON.stringify(event).toLowerCase().includes(needle))
+    })
+  }, [events, ordered, query, range])
   const virtualizer = useVirtualizer({
     count: results.length,
     getScrollElement: () => listParent.current,
@@ -56,7 +59,7 @@ export function EventList({ events, selected, playheadMs, loading, error, onSele
       {!loading && !error && events.length === 0 ? (
         <p className="text-muted-foreground text-sm">No events in this recording.</p>
       ) : events.length > 0 && results.length === 0 ? (
-        <p className="text-muted-foreground text-sm">No events match your search.</p>
+        <p className="text-muted-foreground text-sm">{query ? 'No events match your search in this range.' : 'No events in this range.'}</p>
       ) : null}
       <div ref={listParent} aria-label="Recording events" className="max-h-[65vh] overflow-auto">
       <ol
@@ -70,7 +73,7 @@ export function EventList({ events, selected, playheadMs, loading, error, onSele
           if (!item) return null
           return (
             <li
-              key={item.seq}
+              key={originalIndex}
               data-index={row.index}
               ref={virtualizer.measureElement}
               className="absolute left-0 top-0 w-full pb-2"
