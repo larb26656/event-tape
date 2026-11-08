@@ -24,7 +24,6 @@ function deferred() {
   const promise = new Promise<void>((resolvePromise) => { resolve = resolvePromise })
   return { promise, resolve }
 }
-
 describe('createRecorder with a custom Writer', () => {
   it('uses a supplied writer for structured, snapshotted v1 events', async () => {
     const writer = new ArrayWriter()
@@ -87,6 +86,7 @@ describe('createRecorder with a custom Writer', () => {
     const closing = recorder.close()
     expect(() => recorder.record({ source: 's', payload: 1 })).toThrow(/closed/)
     await closing
+    expect(recorder.close()).toBe(closing)
   })
 
   it('preserves asynchronous Writer rejection and skips queued writes', async () => {
