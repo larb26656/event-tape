@@ -26,6 +26,7 @@
     "zod": "4.3.6"
   },
   "devDependencies": {
+    "@event-tape/recording-format": "workspace:*",
     "@types/node": "22.19.15",
     "eslint": "10.0.1",
     "tsdown": "0.23.7",

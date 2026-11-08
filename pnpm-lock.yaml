@@ -148,6 +148,9 @@ importers:
         specifier: 4.3.6
         version: 4.3.6
     devDependencies:
+      '@event-tape/recording-format':
+        specifier: workspace:*
+        version: link:../recording-format
       '@types/node':
         specifier: 22.19.15
         version: 22.19.15
