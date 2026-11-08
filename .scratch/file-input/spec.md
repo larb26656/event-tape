@@ -1,6 +1,6 @@
 # File Input: ติดตาม log ที่เขียนเพิ่ม
 
-Status: ready-for-agent
+Status: resolved
 
 ## Problem Statement
 

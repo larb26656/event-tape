@@ -4,7 +4,7 @@
 
 **Blocked by:** 01 — บันทึก log จากไฟล์เดียวผ่าน File Input.
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 - [ ] รับ `--path` ซ้ำเพื่อเลือกหลาย literal paths และรับ Record Preset option `paths` เป็น nonempty list ของ nonempty strings ไม่ขยาย glob หรือค้นหาไฟล์ใน directory
 - [ ] CLI paths แทนรายการทั้งหมดจาก preset ไม่ append/merge โดยไม่ตั้งใจ และ `--from-start` ใช้ร่วมทุกไฟล์ตาม precedence เดิม ตรวจ malformed options ก่อนเริ่ม capture
@@ -22,3 +22,7 @@
 - [ ] เมื่อรวมกับ ticket 02 ให้มี integration coverage ของไฟล์หนึ่ง rotate หรือ missing ขณะที่อีกไฟล์ยัง append ได้ โดยเพิ่มกรณีนี้ใน ticket ที่รวมเข้ามาทีหลัง ไม่สร้าง blocker เทียมระหว่างสอง ticket
 - [ ] ทำ CLI smoke จริงกับหลายไฟล์ หยุด แล้วตรวจ parsed Recording พร้อม path attribution และ partial; รักษา single-file, HTTP และ lifecycle coverage ที่มีอยู่
 - [ ] อัปเดตเอกสาร repeated paths, preset list override, shutdown ร่วม, shared failure และลำดับ Recorder acceptance โดยไม่อ้าง total occurrence-time order หรือ lossless capture ข้ามไฟล์
+
+## Comments
+
+Implemented on `file-input-integration` in commit `cec9315`; combined lifecycle coverage was added in `ea89cb7`.

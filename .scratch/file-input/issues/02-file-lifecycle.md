@@ -4,7 +4,7 @@
 
 **Blocked by:** 01 — บันทึก log จากไฟล์เดียวผ่าน File Input.
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 - [ ] path ที่ยังไม่มีตอนเริ่มเป็น waiting state ไม่ใช่ fatal error; ประกาศ readiness ได้เมื่อ establish waiting state แล้ว และไม่ต้องรอไฟล์เกิดเพื่อให้ session เริ่มสำเร็จ
 - [ ] ไฟล์ที่เกิดหลังจากสังเกตว่า path ยังไม่มีให้อ่านตั้งแต่ byte zero เสมอ ไม่ขึ้นกับ `--from-start`; กติกาเริ่ม EOF ใช้เฉพาะไฟล์ที่มีอยู่ตอน initial attachment
@@ -19,3 +19,7 @@
 - [ ] ครอบคลุมบรรทัดค้างก่อนเปลี่ยน generation, ไฟล์ใหม่ที่มีข้อมูลทันที, shutdown ขณะ waiting และ shutdown ขณะเปลี่ยน generation ด้วย isolated fixtures และ bounded waits ไม่อ้างว่าทดสอบพิสูจน์การอ่าน byte ที่ถูกลบไปก่อนอ่านทัน
 - [ ] ทำ CLI smoke จริงที่ append, replace ไฟล์ แล้วหยุดและตรวจ parsed Recording; รักษา tests เดิมของ single-file capture และหลายไฟล์หากมีแล้ว
 - [ ] อัปเดตเอกสาร rotation/truncation และขอบเขต best-effort: rapid rotation หรือ truncate-and-regrow อาจทำให้ข้อมูลหายก่อน Input อ่านหรือสังเกตทัน ไม่รับประกัน audit หรือ recovery ของข้อมูลที่หายไป แต่ห้ามซ่อนข้อผิดพลาดที่สังเกตได้
+
+## Comments
+
+Implemented on `file-input-integration` in commit `39bca8d`, merged with multi-file support in `ea89cb7`.

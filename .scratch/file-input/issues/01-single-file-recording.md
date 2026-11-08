@@ -4,7 +4,7 @@
 
 **Blocked by:** None (can start immediately).
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 - [ ] มี Input ชื่อ `file` ลงทะเบียนผ่าน Input contract เดิม เรียกใช้ด้วย `event-tape record file --path app.log` โดยไม่เปลี่ยนพฤติกรรม HTTP Input หรือเพิ่มรายละเอียด filesystem ใน orchestration กลาง
 - [ ] สำหรับไฟล์ที่มีอยู่ เริ่มอ่านที่ EOF โดยปริยาย หรืออ่านตั้งแต่ต้นด้วย `--from-start` ไม่จำ cursor ข้าม session; relative path อ้างอิง working directory ของ invocation
@@ -23,3 +23,7 @@
 - [ ] ทำ CLI smoke จริง: append ข้อความ หยุด แล้วอ่าน Recording ด้วย parser และพิสูจน์ว่าเปิดผ่าน record-to-view flow เดิมได้ โดยไม่เพิ่ม Player parser ใหม่
 - [ ] เพิ่ม permanent integration test ใน `packages/cli/src/cli.test.ts` ควบคู่ HTTP workflow: เปิด built CLI ด้วย temporary log จริง รอ readiness แล้ว append ข้อความที่ทราบค่าทั้งบรรทัดเต็มและบรรทัดค้าง ส่ง SIGINT ตรวจ exit สำเร็จและ parsed text/path/partial จากนั้นเปิดผ่าน view และตรวจว่า Recording ที่ serve มี bytes และ events ตรงกับไฟล์ที่บันทึก ไม่ใช้เพียง smoke script หรือ tests ใน Input directory แทนข้อกำหนดนี้
 - [ ] อัปเดตเอกสารการใช้คำสั่ง, preset, event payload, limits, shutdown และความเสี่ยง secrets; ระบุว่าเป็น best-effort ไม่ใช่ lossless audit และไม่รองรับ glob, multiline grouping, transforms หรือ resume checkpoints
+
+## Comments
+
+Implemented on `file-input-integration` in commit `9e428a0`; subsequent lifecycle, multi-file, and review fixes are included on the integration branch.

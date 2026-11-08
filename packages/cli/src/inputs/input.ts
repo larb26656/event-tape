@@ -2,7 +2,7 @@ import type { Recorder } from '@event-tape/sdk'
 import type { Command } from 'commander'
 
 export interface RunningInput {
-  address: string
+  address?: string
   stop(): Promise<void>
   forceStop(): void
 }

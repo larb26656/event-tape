@@ -136,6 +136,6 @@ export async function recordCommand(
     await shutdown()
     return
   }
-  console.log(`Listening: ${running.address}`)
+  if (running.address !== undefined) console.log(`Listening: ${running.address}`)
   console.log(`Recording: ${output}`)
 }

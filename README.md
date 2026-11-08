@@ -12,6 +12,7 @@ Record application events and inspect them later on a timeline. Event Tape pairs
 
 - Record events from your application's own listeners to a JSONL file.
 - Capture direct HTTP/1.1 requests or proxy them to an HTTP or HTTPS upstream with the CLI.
+- Capture lines appended to an existing UTF-8 log file without changing its producer.
 - Open recordings locally, search their events, and inspect their raw JSON.
 - Navigate the timeline, select a playback range, and control playback speed.
 
@@ -132,6 +133,37 @@ Body capture retains the first 65536 bytes per request and response by default; 
 Authorization, Cookie and Set-Cookie headers are redacted case-insensitively in recorded headers by default, in both directions. Repeat `--redact-header <name>` to add names, or explicitly use `--no-redact` to retain all header values. This does **not** sanitize URLs, query strings or bodies, which may contain secrets; inspect recordings before sharing them.
 
 The default idle timeout is 30000 ms, adjustable with `--idle-timeout <ms>`; it is not a total lifetime limit for an active stream. Ctrl+C stops new work and drains in-flight requests, proxy traffic and Recorder writes within one 10000 ms budget; `--shutdown-timeout <ms>` adjusts it. A recording failure, overload or deadline expiry exits unsuccessfully and may leave an incomplete recording.
+
+### File input
+
+```sh
+event-tape record file --path ./app.log --path ./worker.log
+# Append log lines, press Ctrl+C, then open the announced Recording:
+event-tape view .tape/<announced-filename>.jsonl
+```
+
+Relative paths are resolved against the invocation working directory. A missing path is awaited; when it appears, it is read from the beginning. Each existing path must be a readable regular file; directories, named pipes, and other non-regular paths are rejected. Capture begins at EOF by default for files present initially; if a last line is unfinished, its continuation is skipped through the next newline. Use `--from-start` to include existing content from every file. Each session starts independently; there are no resume checkpoints.
+
+File options can also be declared in a Record Preset:
+
+```yaml
+input: file
+options:
+  paths: [./app.log, ./worker.log]
+  fromStart: true
+```
+
+Use `event-tape record file --preset-file record.yaml`. Specify one or more literal paths, repeating `--path` on the CLI; CLI paths replace the entire preset list, and explicit CLI options override preset values. Unknown options and invalid types are rejected before capture.
+
+Each line becomes a standard Recorder event with `source: "file"` and payload `{ "path": "<absolute path>", "text": "<raw line>", "partial": false }`. A nonempty unfinished line at shutdown or a detected generation boundary has `partial: true`; fragments from different generations are never joined. LF and CRLF terminators are removed; other whitespace and blank lines are retained. Text is not parsed as JSON, timestamped from the source, transformed, or redacted. Paths and log text can contain secrets; inspect recordings before sharing.
+
+Input must be valid UTF-8 and each line is limited to 1,048,576 source bytes excluding LF/CRLF, independently per file. Invalid or incomplete UTF-8, oversized lines, read failures, and Recorder or Writer failures end the entire session unsuccessfully. On SIGINT or SIGTERM, capture freezes a separate size boundary for each file, drains through those boundaries and flushes valid partial lines, all within the shared `--shutdown-timeout` budget.
+
+All files share one Recorder. Events retain their order within each file; the combined sequence reflects Recorder acceptance, not a guaranteed occurrence-time order across files.
+
+File following tracks the configured path across disappearance, replacement, and detected truncation, reading each new generation from the beginning. It is best-effort, not a lossless audit: rapid rotation or truncation and regrowth may destroy bytes before they can be read or before the change is observed, and those bytes cannot be recovered. Observed errors still fail the session. Globs, directory discovery, multiline grouping, transforms, and resume checkpoints are not supported.
+
+### SDK input
 
 Connect the SDK to an application-owned listener. The SDK does not install listeners or interpret protocol messages. Filter secrets before recording, and await `close()` before exiting.
 

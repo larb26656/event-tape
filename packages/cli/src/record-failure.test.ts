@@ -52,6 +52,32 @@ it('stops rather than acknowledging an event rejected by the bounded write queue
   await expect(fetch(address)).rejects.toThrow()
 })
 
+for (const failure of ['queue', 'writer'] as const) {
+  it(`stops the file session on ${failure} failure`, async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'event-tape-file-failure-'))
+    const path = join(directory, 'app.log')
+    const closed = Promise.withResolvers<void>()
+    const errors = vi.spyOn(console, 'error').mockImplementation(() => {})
+    vi.spyOn(console, 'log').mockImplementation(() => {})
+    try {
+      await writeFile(path, 'line\n')
+      await recordCommand({ input: 'file', path: [path], fromStart: true }, (_file, onError) => createRecorder({
+        maxBufferedBytes: failure === 'queue' ? 1 : undefined,
+        writer: {
+          write() { if (failure === 'writer') throw new Error('disk failed') },
+          close() { closed.resolve() },
+        },
+        onError,
+      }))
+      await closed.promise
+      await vi.waitFor(() => expect(process.exitCode).toBe(1))
+      expect(errors).toHaveBeenCalledWith(expect.stringContaining(failure === 'writer' ? 'disk failed' : 'buffer'))
+    } finally {
+      await rm(directory, { recursive: true, force: true })
+    }
+  })
+}
+
 
 it('retries an automatically generated collision without modifying the existing file', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'event-tape-collision-'))
