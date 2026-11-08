@@ -1,4 +1,5 @@
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
+import { Pause, Play, SkipBack, SkipForward } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import type { RecordingEnvelope } from '@event-tape/recording-format'
 import { TimelineOverview } from './TimelineOverview'
@@ -39,6 +40,8 @@ export function TimelinePanel({
   onClearRange,
 }: TimelinePanelProps) {
   const positionControl = useRef<HTMLInputElement>(null)
+  const [mark, setMark] = useState<{ events: RecordingEnvelope[]; start: number } | null>(null)
+  const rangeStart = mark?.events === events ? mark.start : null
   return (
     <div className="bg-card min-w-0 rounded-xl border p-5">
       <h2 className="mb-4 text-lg font-medium">
@@ -73,62 +76,54 @@ export function TimelinePanel({
         durationMs={durationMs}
         playheadMs={playheadMs}
         range={range}
-        onSetRange={onSetRange}
+        onSetRange={(start, end) => { setMark(null); onSetRange(start, end) }}
         onSeek={onSeek}
         onKeyboardSeek={() => positionControl.current?.focus()}
       />
       <p className="text-muted-foreground mb-3 text-sm">Drag to select an inclusive playback range; click to seek.</p>
-      <div className="mb-4 flex flex-wrap items-center gap-2">
-        <Button variant="outline" disabled={!canSeek || (range !== null && range[0] === range[1])} onClick={onToggle}>
-          {playing ? 'Pause' : 'Play'}
-        </Button>
-        {([0.25, 0.5, 1, 2, 4] as const).map((value) => (
-          <Button
-            key={value}
-            disabled={!canSeek}
-            onClick={() => onSetSpeed(value)}
-            aria-pressed={speed === value}
-          >
-            {value}×
-          </Button>
-        ))}
-        <span className="text-muted-foreground font-mono text-xs">
-          {(playheadMs / 1000).toFixed(2)} / {(durationMs / 1000).toFixed(2)}{' '}
-          s
-        </span>
+      <div className="mb-5 rounded-lg border p-4">
+        <div className="mb-3 flex items-center justify-between gap-2">
+          <span className="text-sm font-medium">Playback</span>
+          <label className="text-muted-foreground flex items-center gap-1 text-xs">
+            Speed
+            <select aria-label="Playback speed" value={speed} disabled={!canSeek} onChange={(event) => onSetSpeed(Number(event.target.value) as TimelinePanelProps['speed'])} className="text-foreground bg-background rounded-md border px-2 py-1.5 text-sm">
+              {([0.25, 0.5, 1, 2, 4] as const).map((value) => <option key={value} value={value}>{value}×</option>)}
+            </select>
+          </label>
+        </div>
+        <div className="flex items-center justify-center gap-3">
+          <Button type="button" variant="ghost" size="icon" aria-label="Go to range start" disabled={!canSeek} onClick={() => onSeek(range?.[0] ?? 0)}><SkipBack /></Button>
+          <Button type="button" size="icon" aria-label={playing ? 'Pause' : 'Play'} disabled={!canSeek || (range !== null && range[0] === range[1])} onClick={onToggle}>{playing ? <Pause /> : <Play />}</Button>
+          <Button type="button" variant="ghost" size="icon" aria-label="Go to range end" disabled={!canSeek} onClick={() => onSeek(range?.[1] ?? durationMs)}><SkipForward /></Button>
+        </div>
+        <input
+          ref={positionControl}
+          aria-label="Playback position"
+          aria-describedby="range-keyboard-help"
+          className="mt-4 w-full accent-primary"
+          type="range"
+          min={range?.[0] ?? 0}
+          max={range?.[1] ?? durationMs}
+          step="any"
+          value={playheadMs}
+          disabled={!canSeek}
+          onChange={(event) => onSeek(Number(event.target.value))}
+          onKeyDown={(event) => {
+            if (event.key.toLowerCase() === 'i') {
+              setMark({ events, start: playheadMs })
+            } else if (event.key.toLowerCase() === 'o' && rangeStart !== null) {
+              onSetRange(rangeStart, playheadMs)
+              setMark(null)
+            }
+          }}
+        />
+        <div className="mt-1 text-center text-muted-foreground font-mono text-xs tabular-nums">
+          {(playheadMs / 1000).toFixed(2)} / {(durationMs / 1000).toFixed(2)} s
+        </div>
       </div>
-      <input
-        ref={positionControl}
-        aria-label="Playback position"
-        className="mb-4 w-full accent-primary"
-        type="range"
-        min={range?.[0] ?? 0}
-        max={range?.[1] ?? durationMs}
-        step="any"
-        value={playheadMs}
-        disabled={!canSeek || (range !== null && range[0] === range[1])}
-        onChange={(event) => onSeek(Number(event.target.value))}
-      />
-      <form
-        key={`${durationMs}:${range?.[0] ?? 0}:${range?.[1] ?? durationMs}`}
-        className="flex flex-wrap items-end gap-3"
-        onSubmit={(event) => {
-          event.preventDefault()
-          const data = new FormData(event.currentTarget)
-          onSetRange(Number(data.get('start')), Number(data.get('end')))
-        }}
-      >
-        <label className="text-sm">
-          Range start (ms)
-          <input name="start" type="number" min={0} max={durationMs} step="any" required defaultValue={range?.[0] ?? 0} disabled={!canSeek} className="border-input bg-background mt-1 block w-32 rounded-md border px-2 py-1" />
-        </label>
-        <label className="text-sm">
-          Range end (ms)
-          <input name="end" type="number" min={0} max={durationMs} step="any" required defaultValue={range?.[1] ?? durationMs} disabled={!canSeek} className="border-input bg-background mt-1 block w-32 rounded-md border px-2 py-1" />
-        </label>
-        <Button type="submit" variant="outline" disabled={!canSeek}>Apply range</Button>
-        <Button type="button" variant="outline" disabled={!range} onClick={onClearRange}>Clear range</Button>
-      </form>
+      <p id="range-keyboard-help" className="text-muted-foreground mb-3 text-xs">On the playback position, press I to mark a range start, then O to mark its end. Clear the range first to select outside it.</p>
+      <p role="status" className="text-muted-foreground text-xs">{rangeStart !== null ? `Range start marked at ${(rangeStart / 1000).toFixed(2)} s. Move the playhead and press O.` : ''}</p>
+      {range && <Button type="button" variant="outline" onClick={() => { setMark(null); onClearRange() }}>Clear range</Button>}
     </div>
   )
 }
