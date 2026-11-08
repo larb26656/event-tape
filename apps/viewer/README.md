@@ -17,7 +17,9 @@ Play advances a clock by recorded `elapsedMs` (including quiet intervals), at 0.
 
 The Viewer places the virtualized Recording events list beside the Timeline and Raw JSON inspector. On narrow screens these panes stack in that order. Select an event in the list to pause Playback, move to its recorded time, and inspect its complete envelope and payload. Use the Timeline controls to play, pause, change speed, or seek. Keyboard activation of the Timeline overview moves focus to the Playback position control for seeking.
 
-Drag across the Timeline overview to select an inclusive playback range, or enter the start and end in milliseconds and apply them using the keyboard-accessible controls. Selecting a range pauses Playback and moves the playhead to its start. The list shows only events within the range, and Playback stops at its end. A range containing no events shows no selection or JSON. Clear range restores the full recording; search can further filter the range.
+The Raw JSON inspector syntax-highlights keys and values while keeping the complete formatted JSON selectable and copyable.
+
+Drag across the Timeline overview to select an inclusive playback range. Alternatively, focus the Playback position control, seek to the start and press `I`, then seek to the end and press `O`. Selecting a range pauses Playback and moves the playhead to its start. The list shows only events within the range, and Playback stops at its end. A range containing no events shows no selection or JSON. Clear range restores the full recording; search can further filter the range.
 
 Search events matches a case-insensitive substring anywhere in the complete event JSON, including field names and nested payloads. It filters only the list: the Timeline, Playback, and inspected event remain unchanged, even when the selected event is hidden. Clear the search to restore all events within the current range. Regular expressions, structured queries, and saved searches are not supported.
 

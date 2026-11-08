@@ -87,6 +87,18 @@
     --ring: oklch(0.556 0 0);
 }
 
+.json-highlight .token.property { color: #005a9c; }
+.json-highlight .token.string { color: #176427; }
+.json-highlight .token.number { color: #854000; }
+.json-highlight .token.boolean { color: #7928a1; }
+.json-highlight .token.null { color: #a32a55; }
+
+.dark .json-highlight .token.property { color: #8ac7ff; }
+.dark .json-highlight .token.string { color: #9cdd9f; }
+.dark .json-highlight .token.number { color: #ffc078; }
+.dark .json-highlight .token.boolean { color: #dda5ff; }
+.dark .json-highlight .token.null { color: #ff9bb1; }
+
 @layer base {
   * { @apply border-border outline-ring/50; }
   body { @apply bg-background text-foreground; }
