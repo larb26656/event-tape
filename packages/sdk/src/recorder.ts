@@ -71,10 +71,14 @@ export function createRecorder(options: RecorderOptions): Recorder {
       closing = true
       closePromise = (async () => {
         await queue
+        let closeFailed = false
         let closeFailure: unknown
-        try { await writer.close() } catch (error) { closeFailure = error }
+        try { await writer.close() } catch (error) {
+          closeFailed = true
+          closeFailure = error
+        }
         if (failure) throw failure
-        if (closeFailure !== undefined) throw closeFailure
+        if (closeFailed) throw closeFailure
       })()
       return closePromise
     },
